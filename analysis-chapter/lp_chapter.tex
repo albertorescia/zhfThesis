@@ -26,15 +26,19 @@ This analysis aims to study the properties of b-jets. Currently, little is known
 
 Jet substructure is a relatively novel field, which only really took off with the start of the LHC programme in 2008 with the aim to identify the Higgs boson in the VH production mode and to study possible BSM resonances. 
 
-Since then, the field has grown and developed a number of applications, mostly involving jet flavour tagging, quark/gluon jet discrimination and precision QCD studies. 
+Since then, the field has grown and developed a number of applications, mostly involving jet flavour tagging, quark/gluon jet discrimination and precision QCD studies \cite{Larkoski:2014pca, Fedkevych:2022mid, Cavallini:2021vot}. Some of these aspects will be touched upon in Sections \ref{lp} and \ref{angles}.
 
+Up until very recently, one noticeably lacking aspect in the literature was heavy flavour jet substructure. Although some phenomenological papers have been published in the mid-2010s, mainly involving uncovering the dead cone effect \cite{Maltoni:2016ays, Cunqueiro:2018jbh}, it was not until this decade that the LHC collaborations began publishing papers on the subject. These still mostly involved unveiling the dead cone effect, though the ALICE collaboration has also released a measurement on $D^0$ tagged jets in pp collisions at $\sqrt{s} = 13$ TeV \cite{ALICE:2022phr}.
 
-\textcolor{red}{Talk about importance of jet substructure, why we want to understand b-jets, uses in tagging, background in searches or for higgs, precision physics, better mc modelling, etc.}
+Still, there was an important gap in the literature as no studies focused on $b$-jet substructure. This is of particular interest as little is known of the radiation pattern of jets. As previous studies have shown significant mismodelling of jet substructure observables in dijet events, it is important to test whether our understanding of the radiation pattern within these heavy flavour jets is just as poorly understood. In addition, furthering our understanding and improving our modelling of $b$-jets is poised to increase tagging performance beyond the significant, purely technological achievements that came from the introduction of graph neural network based taggers. 
 
+Until 2024, there was no measurement focusing on $b$-jet substructure until this year, when CMS published a first measurement of groomed $b$-jet substructure with dijet events from pp collisions at $\sqrt{s} = 5.02$ TeV. \todo{Since then, LHCb has published ...}. 
+This work represents the first ATLAS measurement of heavy flavour jet substrucutre, and the first analysis of $b$-jet substructure not primarily aimed at revealing the dead cone effect.
 
 \section{Observables of interest}
 
 \subsection{The primary Lund Jet Plane}
+\label{lp}
 
 The primary Lund Jet Plane is the main observable which this analysis focuses on. The observable is particularly interesting due to a number of neat properties it possesses. 
 
@@ -86,8 +90,6 @@ It is also possible to define Lund Planes beyond the primary, by considering fur
 
 The Lund Plane has been measured on inclusive jets by the ATLAS, CMS and ALICE collaborations \cite{ATLAS:2020bbn, CMS:2023lpp, ALICE:2021yet}. ATLAS has additionally released measurements for the Lund Plane for top and W jets \cite{ATLAS:2024dua} and a measurement on the Lund subjet multiplicity \cite{ATLAS:2024wrd}.
 
-\todo{Add citations to CMS dead cone papers/LHCb paper}
-
 %parlare del lavoro 
 
 %Discuss what is a parton shower
@@ -95,6 +97,7 @@ The Lund Plane has been measured on inclusive jets by the ATLAS, CMS and ALICE c
 %Discuss Panscales and NLL accurate showers
  
 \subsection{Modified jet angularities}
+\label{angles}
 
 The generalised angularities \cite{Larkoski:2014pca, Proceedings:2018jsb, Gras:2017jty}, henceforth referred to as just \emph{angularities}, are a class of observables designed for quark/gluon jet discrimination. They are defined as 
 
@@ -208,20 +211,27 @@ In each event, it is important to properly reconstruct the primary vertex of the
 
 \subsection{Event selection}
 
+
 \section{Lund plane (and angularities) reconstruction}
 
 The Lund Plane is reconstructed from tracks satisfying the requirements described in \ref{track sel}. The measurement does not include calorimeter cells due to the better angular resolution of the Inner Tracker. 
+
+An extensive study was carried out to understand which object to use to reconstruct the Lund Plane. Tracks were checked against other physics objects, namely Unified Flow Constituents (UFOs) and PFlow constituents \todo{(these will be described in ATLAS chapter)}. As can be seen in Figure BLAAAH, the pattern of emissions of the one dimensional Lund Plane in reco-level jets clustered with tracks only closely matches that of truth-level jets clustered with charged particles. This, together with isospin symmetry, justifies the choice to use tracks and charged particles for the measurement. 
+
+Crucially, the agreement shown holds when the tracks selected for the measurement are meet basic quality requirements and are matched to the primary vertex, as described in Section bleh. The working points and $p_T$ threshold used in the track selection were optimised to ensure the highest number of matches between emissions at truth and reco level for IBU unfolding \todo{(add plot)}. It is important to note that this does not necessarily ensure that the number of fakes and inefficiencies is minimised, just that, per happenstance, the number of fakes and inefficiencies is such that the total number of emissions in the primary lund plane matches between truth and reco level.
+
+The effect of omitting the neutral component was studied at truth level. In figure BLULUH 
 
 \todo{add plot comparing to pflow and ufo}
 
 Tracks and/or the reconstructed B-hadron are matched to jets through a geometric matching, by which a track is required to be within a distance $\Delta R$ from the jet axis equal to the jet radius. The tracks matched to each jet are then clustered into a jet using the anti-$k_t$ algorithm, and the Lund Plane algorithm is subsequently applied as described in \ref{lp sec}.
 
-The working points and $p_T$ threshold used in the track selection were optimised to ensure the highest number of matches between emissions at truth and reco level for IBU unfolding \todo{(add plot)}. It is important to note that this does not necessarily ensure that the number of fakes and inefficiencies is minimised, just that, per happenstance, the number of fakes and inefficiencies is such that the total number of emissions in the primary lund plane matches between truth and reco level.
+The same tracks are also used for the construction of the angularities. In this case, the jet clustering algorithm applied is different, i.e. C/A with WTA. 
+
+\section{ttbar rejection}
+\todo{ttbar rejection is a selection on events applied. Flavor fit is characterisation of background, goes into next chapter showing plots.}
 
 
-The effect of omitting the neutral component was studied at truth level. In figure ...
-
-\section{bkg characterisation/ttbar rejection}
 
 \section{B hadron reconstruction}
 To be able to accurately study the substructure of heavy flavour jets, one must solve the problem of the heavy flavour hadron decay products. 
