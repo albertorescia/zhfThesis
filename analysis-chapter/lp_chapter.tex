@@ -16,7 +16,7 @@
 
 \begin{document}
 
-\chapter{A measurement of jet substructure observables on $Z+b\bar{b}$ final states}
+\chapter[$Z+b\bar{b}$ JSS]{Jet substructure observables in the $Z+b\bar{b}$ final state in the ATLAS experiment}
 
 The main focus of this thesis is a measurement of the Lund Jet Plane and other substructure observables on $Z+b\bar{b}$ final states. The analysis focuses on boosted and resolved topologies. For comparison, final states containing $Z+jj$, where j indicates a light-flavour jet, are also considered. This chapter will introduce the measurement in detail. First, a motivation for the measurement and description of the observables of interest will be given. Subsequently, a details review of selections, final states, data and simulation samples utilised will be given. 
 
@@ -89,6 +89,14 @@ It is also possible to define Lund Planes beyond the primary, by considering fur
 \end{figure}
 
 The Lund Plane has been measured on inclusive jets by the ATLAS, CMS and ALICE collaborations \cite{ATLAS:2020bbn, CMS:2023lpp, ALICE:2021yet}. ATLAS has additionally released measurements for the Lund Plane for top and W jets \cite{ATLAS:2024dua} and a measurement on the Lund subjet multiplicity \cite{ATLAS:2024wrd}.
+
+\subsection{Lund Plane unrolling procedure}
+
+Often, it is easier to work with one-dimensional observables than two-dimensional ones. As the Lund Plane is by definition two-dimensional, an ``unrolling procedure'' is carried out to translate it to a one-dimensional representation. This is useful, for instance, for histogram-based Iterative Bayesian Unfolding, as will be described in the next chapter. 
+
+To unroll the Lund Plane, we plot the number of entries in each bin row-by-row, starting from the bottom-left corner of the plane. This leads to a distinctive falling pattern, representing each row, as shown in Figure BLEUAL. This pattern repeats as one moves up the Lund Plane. As one scans each row, two additional bins must be considered: one, to the left of the block corresponding to the x-underflow in that row, and one to the right corresponding to the x-overflow of that row. Before scanning each row of the Lund Plane, an additional block corresponding to all underflow in y is considered, and, analagously, a final block corresponding to overflow in y is considered after scanning the Lund Plane. These additional y underflow and overflow blocks also contain the additional bins corresponding to underflow and overflow in x. The end result is a one-dimensional plot containing $(N_{x}+2)*(N_{y}+2)$ bins, where $N_{i}$ indicates the number of bins on the x- or y- axis of the original 2-dimensional plot.
+
+\todo{Add plot of 2D Lund Plane}
 
 %parlare del lavoro 
 
@@ -190,7 +198,7 @@ R \rightarrow R_{eff}{p_{T,i}} = \frac{\rho}{p_{T,i}}
 \label{Reff}
 \end{equation} 
 
-where $R_{eff}$ is an effective radius parameter dependent on the transverse momentum of the proto-jet $p_{T,i}$. $\rho$ is a parameter which determines the speed with which the effective radius decreases. It is set to $\rho = 30$ GeV. The jet radius varies according to \ref{Reff}, up to (down to) a maximum (minimum) radius of $R = 0.4$ ($R = 0.02$). Overall, the radius paramter is given by 
+where $R_{eff}$ is an effective radius parameter dependent on the transverse momentum of the proto-jet $p_{T,i}$. $\rho$ is a parameter which determines the speed with which the effective radius decreases. It is set to $\rho = 30$ GeV. The jet radius varies according to \ref{Reff}, up to (down to) a maximum (minimum) radius of $R = 0.4$ ($R = 0.02$). Overall, the radius parameter is given by 
 \begin{equation}
 R = max(0.02, min(0.4, \frac{\rho}{p_T}).
 \end{equation}
@@ -226,7 +234,7 @@ The effect of omitting the neutral component was studied at truth level. In figu
 
 Tracks and/or the reconstructed B-hadron are matched to jets through a geometric matching, by which a track is required to be within a distance $\Delta R$ from the jet axis equal to the jet radius. The tracks matched to each jet are then clustered into a jet using the anti-$k_t$ algorithm, and the Lund Plane algorithm is subsequently applied as described in \ref{lp sec}.
 
-The same tracks are also used for the construction of the angularities. In this case, the jet clustering algorithm applied is different, i.e. C/A with WTA. 
+The same tracks are also used for the construction of the angularities. In this case, the jet clustering algorithm applied is different, i.e. C/A with the WTA recombination scheme. 
 
 \section{ttbar rejection}
 \todo{ttbar rejection is a selection on events applied. Flavor fit is characterisation of background, goes into next chapter showing plots.}

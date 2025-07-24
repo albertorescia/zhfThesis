@@ -2,8 +2,12 @@ Introduction
 Theory
 ATLAS
 FTAG + New algorithms + QT
-Intro to analysis
-B-hadron reconstruction
+-heavy flavours in qcd (theory)
+-flavour tagging (experiment)
+-new algorithms for jet flavour
+-pheno work
+-Xbb R21 calibration
+Intro to analysis/B-hadron reconstruction
 Background estimation/systematics/unfolding
 Results
 Conclusions
