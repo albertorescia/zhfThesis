@@ -394,7 +394,179 @@ The jet vertex tagger is used to identify whether a jet stems from a pile-up ver
 \end{equation}
 and the corrected jet vertex fraction, corrJVF. CorrJVF is related to the jet vertex fraction (JVF) which VF may estimates $p_t$ fraction of a jet that can be associated with the primary vertex. It is corrected to account for the number of reconstructed primary vertices in the event.
 
+\section{Flavour tagging}
+
+This thesis focuses mainly on the substructure of heavy flavour jets. In order to study these jets at colliders, we must first be able to identify them in a given final state. Experimentally, this process is known as \emph{flavour tagging}. This section will focus on the description of the ATLAS DL1r tagger and its performance. More detailed information on boosted flavour taggging and flavour labelling will follow in Chapters 3 and 4, respectively (\textcolor{red}{add links}).
+
+\subsection{Flavour tagging in a nutshell}
+
+Jets, as they are defined, are merely a collection of particles grouped together by an algorithm. In order to discern more information of the underlying physics which led to their formation, it is often useful to know which particle gave origin to the jet.
+
+Flavour tagging algorithms are one of the first solutions devised to exploit substructure properties of jets to understand more about their formation. Specifically, the aim of flavour tagging is to understand whether jets originate from heavy quarks or light quarks or gluons. Jets falling in the latter case are often grouped together and are collectively known as \emph{light jets}.
+
+Flavour tagging relies on the long lifetime of heavy flavour hadrons. B hadrons in particular have the lifetime of the order of 1~ps, which, at the relativistic speeds at which they travel when produced at colliders, translates to a macroscopic distance traversed before the decay occurs, allowing for the identification of the decay vertex in the detector. Tracks originating from this vertex are characterised by a large $d_0$ as they are not aligned with the primary vertex. A representation of the formation of the secondary vertex is shown in Figure \ref{fig:svtx}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth]{atlas/ftag/B-tagging_diagram.png}
+    \caption{The properties of a secondary vertex from the decay of a B hadron which allow for flavour tagging~cite{wiki:btag}.}
+    \label{fig:svtx}
+\end{figure}
+
+Various other effects also contribute to the identification of heavy flavour jets. Focusing again on b-jets, the high charged particle multiplicity of the principle decay channels facilitates the identification of the secondary vertex. This vertex is characterised by a mass of the order of 5~GeV, the mass of the hadron before it decayed. Due to the leading particle effect, the heavy hadron (and consequently its decay products) also carries a significant fraction of the momentum of the jet. 
+
+All these features are also present in c-jets, though they are not as pronounced as in b-jets, rendering the task of flavour tagging more difficult. Ideal light jets, on the other hand, lack these features. They consist mainly of tracks which point directly back to the primary vertex. In practice, however, many factors can lead to the misidentification of light jets as heavy-flavour jets. 
+
+Early flavour tagging algorithms, such as those used during Run 1 of ATLAS, exploited these geometric and topological properties and identified b-jets via a cut-based approach. The approach was not sophisticated enough for the identification of c-jets. The advent of machine learning brought about a revolution in the world of flavour tagging. Next generation taggers, such as the DL1 series, fed the output of several low-level algorithms and kinematic properties of jets to a neural network to tag jets. C-tagging became possible at this point.
+
+The next revolution was brought about by the use of graph neural networks. The GN tagger series represents a jet as a graph, where each track is a node. Kinematic information of the track, together with low-level detector information such as the number of hits or holes in the layers of the inner detector, are used to train the algorithm. This strategy proved successful, and led to a marked increase in tagging performance for Run 3.
+
+The rejection of flavour tagging algorithms used by ATLAS for $t\bar{t}$ events with a 70\% $b$-tagging working point in shown in Figure~\ref{fig:ftag_time}. Specifically, three iterations of the DL1 series is shown, together with the first two iterations of the GN series, with DL1 used as a reference point. The increase in tagging performance over time is striking, with a notable jump in the GN series. 
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth]{atlas/ftag/ftag_time.pdf}
+    \caption{The improvement over Run 2 and Run 3 of the ATLAS Flavour Tagging algorithm, specifically different iterations of the DL1 series and the GN series~\cite{Duperrin:2855275}.}
+    \label{fig:ftag_time}
+\end{figure}
+
+\subsection{DL1r}
+
+The flavour tagging algorithm used in the measurement which constitutes the bulk of this thesis is DL1r. DL1r is part of the DL1 series, i.e. the second generation of flavour tagging algorithms used by ATLAS. It is based on the output of a high-level neural network which takes in several low-level tagging algorithms as well as kinematic information of the jet in question. With this information it decides whether a jet is, b-, c-, or light.
+
+The low-level algorithms in question are described below.
+
+\subsubsection{IP2D \& IP3D}
+\label{IP algos}
+
+IP2D and IP3D are two algorithms based on the track impact parameter (IP). The former considers only the transverse IP, while the latter considers the longitudinal IP as well. Specifically, the \emph{signed IP significances} are used, where the sign refers to the position of a given track with respect to the axis of the jet that belongs to, with a positive (negative) sign referring to a track which is ahead (behind) the jet axis. The value of the signed IP is divided by the error of the value itself to obtain its significance. $S_{d_0}$ and $S_{z_0}$ are used to refer to the transverse and longitudinal IP significances, respectively.
+
+Tracks coming from secondary vertices are characterised by large values of the signed IP significance as they are not aligned with the primary vertex of the event. 
+
+MC simulations of b- and c-jets from $t\bar{t}$ and $Z^\prime$\footnote{$Z^\prime$ refers to a particle with the same properties as the $Z$ boson but with an artificially high mass. It is used to derive distributions of jets at high-$p_t$.} events are used to populate reference histograms of the signed IP significances, $S_i$. These are used to derive probability density functions, from which log-likelihood ratios are calculated to distinguish each category -- b-, c-, and light jets -- from each other. As an example, for the b- vs. light jet hypothesis, this ratio is
+\begin{equation}
+    \sum_i p_b(S_i)/p_\text{light}(S_i),
+\end{equation}
+where the sum runs on all tracks $i$ in the jet. $p_b(S_i)$ and $p_\text{light}(S_i)$ represent the template probability density functions for the two hypotheses. Flavour probabilities are assumed to be independent. 
+
+The $S_{d_0}$ value for tracks from b-, c- and light jets with $p_t > 20$ GeV from $t\bar{t}$ events is shown in Figure \ref{ip2d}, together with the IP2D discriminant for the b-jet vs. light jet flavour hypothesis. The discrimination power of the variable is clearly seen.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.48\linewidth]{atlas/ftag/d0sig.pdf}
+    \includegraphics[width=0.48\linewidth]{atlas/ftag/ip2d.pdf}
+
+    \caption{The signed transverse IP distribution for tracks from b-, c- and light jets coming from $t\bar{t}$ events (left), together with the log-likelihood ratio IP2D computed from it (right) \cite{ATLAS:2022qxm}.}
+    \label{fig:ip2d}
+\end{figure}
+
+\subsubsection{RNNIP}
+
+The IP-based algorithms described in Section \ref{IP algos} assume that each track's IP significance is independent from that of every other track. However, in practice this is not a case. If a track with a large IP is identified from a secondary vertex stemming from a heavy-flavour hadron decay, it is very likely to find at least one other track with a large IP significance within the jet. To account for this and to improve the modelling of the properties of heavy flavour jets, recurrent neural networks (RNNs) are used to learn the correlation between tracks in a given jet. The algorithm used is known as RNNIP.
+
+A vector of track features, such as $S_{d_0}$ and $S_{z_0}$, the $p_t$ fraction carried by the track $p_t^{\text{frac}}$, distance to the jet axis $\Delta R(\text{jet}, \text{track})$ and hit multiplicity in the various ID layers, are used to train the RNN. The vector is ordered by decreasing values of $\vert S_{d_0}\vert$ to highlight the importance of this feature. The $p_t$ spectra of the $b$-jet and $c$-jet distributions are also reweighted to that of the light jet distribution to avoid training the network on features specifically related to the specific sample or flavour features.
+
+The output of RNNIP 
+\begin{equation}
+    D_{\text{RNNIP}} = \ln\left(\frac{p_b}{f_c\cdot p_c + (1-f_c)\cdot p_\text{light}} \right)
+    \label{discriminant}
+\end{equation}
+ is used as a discriminant, where $f_c$ represents the fraction of c-jets in the sample, which was optimally found to be $f_c = 0.07$.
+
+ The distribution of the flavour tagging discriminant derived from the RNN for jets from a $t\bar{t}$ sample is shown in Figure \ref{fig:rnn}.
+
+ \begin{figure}
+     \centering
+     \includegraphics[width=0.8\linewidth]{rnn}
+     \caption{The RNNIP flavour tagging discriminant for b-, c- and light jets \cite{ATLAS:2022qxm}.}
+     \label{fig:rnn}
+ \end{figure}
+
+ \subsubsection{SV1}
+ \label{SV1}
+Another way to identify heavy flavour jets is to explicitly reconstruct the secondary vertex. The secondary-vertex-tagging algorithm (SV1) \cite{ATLAS:2017kle} does just that. Using the 25 highest $p_t$ tracks within the heavy flavour jet candidate, the algorithm identifies all possible two-track vertices. Vertices which are found to be compatible with particles such as the $K_S$, $\Lambda$ are rejected, along with photon conversions and hadron conversions. The algorithm iteratively tries to fit a single secondary vertex from the remaining vertex candidates. For each iteration, a $\chi^2$ test is used to evaluate the track-to-vertex matching for all tracks. The track with the largest $\chi^2$ is then removed from the fit. This process is repeated until a vertex with a small enough $\chi^2$ and mass below 6~GeV is found.   
+ 
+\subsubsection{JetFitter}
+
+JetFitter \ref{ATLAS:2018nnq} is a multi-vertex secondary vertex finder which makes use of the topological structure of heavy hadron decays to reconstruct a B-hadron's full decay chain. Using a Kalman filter, the algorithm identifies a line on which the B-hadron, and subsequent C-hadron decays occur, allowing for the reconstruction of the B-hadron's trajectory and the vertex positions with even just a single track from each decay. To identification of c-jets from b-jets and light-flavour jets is improved by specifically targeting jets that have a single reconstructed secondary vertex at a distance similar to the B-hadron decay vertex in b-jets and with intermediate charged decay multiplicity. 
+
+\subsubsection{DL1r}
+
+The outputs of the of the low-level algorithms described above are combined with the $p_t$ and $\vert\eta\vert$ of the jet to train a high-level neural network, known as DL1(r). The difference between the two lies in the inclusion of the RNNIP output, which is present in DL1r but not in DL1. 
+Table \ref{tab:HLTaggerInputs} provides an overview of all variables included in the neural network.
+
+\begin{table}[htbp]
+\caption{The input variables used to train the DL1r tagging algorithm~\cite{ATLAS:2022qxm}}
+\label{tab:HLTaggerInputs}
+\begin{center}
+\scriptsize
+\begin{tabular}{|l|c|p{0.4\textwidth}|}
+\hline
+Input & Variable & Description \\
+\hline
+\multirow{2}{*}{Kinematics}
+& $p_t$ & Jet $p_t$ \\
+& $\eta$ & Jet $|\eta|$ \\
+\hline
+\multirow{3}{*}{IP2D/IP3D}
+& $\log(P_{b}/P_{\mathrm{light}})$  & Likelihood ratio between the $b$-jet and light-flavour jet hypotheses  \\
+& $\log(P_{b}/P_{\mathrm{c}})$  & Likelihood ratio between the $b$- and $c$-jet hypotheses  \\
+& $\log(P_{c}/P_{\mathrm{light}})$  & Likelihood ratio between the $c$-jet and light-flavour jet hypotheses  \\
+\hline
+\multirow{8}{*}{SV1}
+& $m$(SV) & Invariant mass of tracks at the secondary vertex assuming pion mass \\
+& $f_E$(SV) & Energy fraction of the tracks associated with the secondary vertex \\
+& $N_{{\mathrm{TrkAtVtx}}}$(SV) & Number of tracks used in the secondary vertex \\
+& $N_{{\mathrm{2TrkVtx}}}$(SV) & Number of two-track vertex candidates \\
+& $L_{xy}$(SV) & Transverse distance between the primary and secondary vertex \\
+& $L_{xyz}$(SV)& Distance between the primary and the secondary vertex  \\
+& $S_{xyz}$(SV)& Distance between the primary and the secondary vertex divided by its uncertainty \\
+& $\Delta R(\vec p_{\mathrm{jet}}, \vec p_{\mathrm{vtx}})$(SV) & $\Delta R$ between the jet axis and the direction of the secondary vertex relative to the primary vertex. \\
+\hline
+\multirow{8}{*}{\textsc{JetFitter}}
+& $m$(JF) & Invariant mass of tracks from displaced vertices \\
+& $f_E$(JF) &  Energy fraction of the tracks associated with the displaced vertices \\
+& $\Delta R(\vec p_{\mathrm{jet}}, \vec p_{\mathrm{vtx}})$(JF) & $\Delta R$ between the jet axis and the vectorial sum of momenta of all tracks attached to displaced vertices \\
+& $S_{xyz}$(JF) & Significance of the average distance between PV and displaced vertices \\
+& $N_{{\mathrm{TrkAtVtx}}}$(JF) & Number of tracks from multi-prong displaced vertices \\
+& $N_{{\mathrm{2TrkVtx}}}$(JF) & Number of two-track vertex candidates (prior to decay chain fit) \\
+& $N_{{\mathrm {1\mbox{-}trk\ vertices}}}$(JF) & Number of single-prong displaced vertices \\
+& $N_{{\geq \mathrm{2\mbox{-}trk\ vertices}}}$(JF) & Number of multi-prong displaced vertices \\
+& $L_{xyz}(2^{{\mathrm{nd}}}/3^{{\mathrm{rd}}}{\mathrm{vtx}})$(JF) & Distance of $2^{{\mathrm{nd}}}$ or $3^{{\mathrm{rd}}}$ vertex from PV \\
+& $L_{xy}(2^{{\mathrm{nd}}}/3^{{\mathrm{rd}}}{\mathrm{vtx}})$(JF) & Transverse displacement of the $2^{{\mathrm{nd}}}$ or $3^{{\mathrm{rd}}}$ vertex \\
+& $m_{\mathrm{Trk}}(2^{{\mathrm{nd}}}/3^{{\mathrm{rd}}}{\mathrm{vtx}})$(JF) & Invariant mass of tracks associated with $2^{{\mathrm{nd}}}$ or $3^{{\mathrm{rd}}}$ vertex \\
+& $E_{\mathrm{Trk}}(2^{{\mathrm{nd}}}/3^{{\mathrm{rd}}}{\mathrm{vtx}})$(JF) &  Energy fraction of the tracks associated with $2^{{\mathrm{nd}}}$ or $3^{{\mathrm{rd}}}$ vertex   \\
+& $f_E (2^{{\mathrm{nd}}}/3^{{\mathrm{rd}}}{\mathrm{vtx}})$(JF) & Fraction of charged jet energy in $2^{{\mathrm{nd}}}$ or $3^{{\mathrm{rd}}}$ vertex\\
+& $N_{{\mathrm{TrkAtVtx}}}(2^{{\mathrm{nd}}}/3^{{\mathrm{rd}}}{\mathrm{vtx}}) $(JF) & Number of tracks associated with $2^{{\mathrm{nd}}}$ or $3^{{\mathrm{rd}}}$ vertex \\
+& $\eta_\text{trk}^{\min, \, \max, \, \text{avg}}(2^{\text{nd}})(\text{JF})$ & Min., max. and avg. track rapidity of tracks at $2^{{\mathrm{nd}}}$ or $3^{{\mathrm{rd}}}$ vertex \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+DL1(r) is trained on a sample consisting in 70\% of jets from a $t\bar{t}$ production process, while the remaining portion consists of jets from a $Z^\prime \rightarrow q\bar{q}$ sample, where the $Z^\prime$ corresponds to a heavy resonance. These are set to decay to b-quarks, c-quarks and light quarks $1/3$ of the time each. The two samples are used to generate jets across a wide $p_t$ spectrum, specifically for jets with $p_t > 250$~GeV. The $p_t$ spectrum of the jets used for training is reweighted in such a way that the final $p_t$ distribution is uniform in order to avoid biases. Jets can be of different types, such as PFlow jets of radius $R = 0.4$ or VR trackjets.
+
+The resulting output discriminant from the tagger, $D_{\text{DL1r}}$, is defined analogously to Eq. \ref{discriminant}. In this case, however, the c-jet fraction is set to $f_c = 0.018$. $f_b$ is instead set to 0.2. 
+
+Figure \ref{fig:dl1r discriminant} shows the output of DL1r for b jets, c jets, and light PFlow jets in the $p_t$ range $20 < p_t < 250$~GeV. Clear discrimination of b-jets is visible. Figure \ref{fig:ebb} shows the the b-tagging efficiency for DL1r compared to that for DL1 and MV2c10~\cite{ATLAS:2019bwq}, a tagging algorithm based on a boosted decision tree used by ATLAS during the early years of Run 2. A marked improvement in both the c-jet rejection and light jet rejection can be seen.
+
+To use the DL1r tagger, several working points are calibrated. These are the 60\%, 70\%, 77\%, and 80\% working points, which correspond to a $b$-jet acceptance of the same percentage. Lower working points are characterised by a higher $c$-jet and light jet rejection, resulting in a higher purity of $b$-jets.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth]{atlas/ftag/dl1r_discriminant.pdf}
+    \caption{The DL1r discriminant for b-jets, c-jets, and light jets~\cite{ATLAS:2022qxm}.}
+    \label{fig:dl1r discriminant}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth]{atlas/ftag/ebb.pdf}
+    \caption{The b-tagging efficiencies of the DL1r, DL1, and MV2c10 taggers~\cite{ATLAS:2022qxm}.}
+    \label{fig:ebb}
+\end{figure}
+
 \section{Conclusions}
-In this chapter we have described how $pp$ collision data is taken at the ATLAS detector. We have described the reconstruction of physics objects relevant to this thesis, focusing particularly on jets and jet calibrations.
+In this chapter we have described how $pp$ collision data is taken at the ATLAS detector. We have described the reconstruction of physics objects relevant to this thesis, focusing particularly on jets and jet calibrations. We then described how heavy flavour jets are identified in ATLAS, and focused on the flavour tagging strategy adopted by ATLAS during Run 2.
 
 \end{document}
