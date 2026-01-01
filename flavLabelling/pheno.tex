@@ -1,0 +1,536 @@
+\documentclass[10pt,a4paper]{book}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows,calc}
+\usepackage{afterpage}
+\usepackage{pdflscape}
+\usepackage{subfig}
+\usepackage{amssymb}
+\usepackage{epigraph}
+\usepackage{makecell}
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{graphicx}
+\author{Alberto Rescia}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\begin{document}
+
+\chapter{Jet flavour labelling}
+\label{ch:flavLabel}
+
+In theoretical predictions, the classification of heavy flavour jets, or \emph{flavour labelling}, is a critical under multiple facets. First, it is a crucial component of fixed-order calculations involving heavy flavour production. At NNLO and beyond, defining a jet's flavour is highly non-trivial, as effects such as gluon splittings can ``contaminate'' a jet with heavy flavours which do not stem directly from the matrix element. This can be in the form of a soft gluon splitting into a heavy flavour pair within a jet, a wide-angle gluon splitting leading to one of the quarks entering a jet, or a splitting of the form $b\rightarrow gb$, which reduces the $b$-quark (and subsequent hadron) $p_t$ below the threshold for consideration for geometric matching.
+
+Were we to assign flavour naively, based solely on the presence of heavy flavour quarks (at parton level) or heavy flavour hadrons within a given jet, such effects would lead to flavour mislabelling. For precision calculations and comparison to data, they ability to identify spurious flavour arising is paramount.
+
+Accurate flavour labelling is also an important component of the MC simulation used in experiments for the development of flavour tagging. To train an algorithm, one needs to identify at particle level jets containing heavy flavours, to then, at reconstruction level, be able to identify within the detector simulation those features which allow for the identification of these jets in data. Here, there is some merit in an inclusive definition of flavour, allowing for these contaminations: if one is solely interested in fragmentation studies, it is irrelevant to consider whether the fragmenting heavy flavour quark arises from the matrix element or parton shower. In addition, it is impossible to distinguish these two cases experimentally. However, mislabelling of jets in training can lead to bias since, for example, wide-angle $b\bar{b}$ pairs can lead to the contamination of $c$-jets, considering the fact that $b$-flavour takes priority over $c$. More details will follow in Section~\ref{sec:ghost}.
+
+In recent years, a number of novel IRC-safe jet clustering algorithms which take flavour into account have been developed to solve this inconsistency. Collectively, these are known as \emph{flavour jet algorithms}. In this Chapter, we will describe these algorithms and evaluate their impact on several theoretical and experimental aspects of flavour labelling. We begin in Section~\ref{sec:ghost} with a description of the flavour labelling strategies currently in use at experiments such as ATLAS and CMS before moving on to describe the novel flavour jet algorithms in Section~\ref{sec:flavAlgs}. A detailed comparison of the performance of these algorithms, principally on $Z$+jets final states, is then carried out in Section~\ref{sec:FlavAlgComparison}.
+
+This Chapter is based off of work initiated at the 2023 Les Houches Workshop~\cite{Huss:2929863} which I took part in and results in a follow-up study I published in~\cite{Behring:2025ilo}. 
+
+\section{Current flavour labelling strategies}
+\label{sec:ghost}
+Historically, three different strategies for flavour labelling have been used. These are as follows:
+
+\begin{enumerate}
+\label{Enum:matching}
+    \item \textbf{Anti-$k_t$ labelling:} A jet is labelled as a heavy flavour jet if a particle containing bottom or charm is found within it, as determined by the jet clustering algorithm (typically anti-$k_t$). This particle may be the quark itself, if the labelling is done at parton level, or else a hadron whose decay has been suppressed.
+    \item \textbf{Geometric matching:} This is the strategy used to label jets within ATLAS. It is applied exclusively at hadron level. A jet is labelled as $b$ if a $b$ hadron with $p_t > 5$~GeV is found within a radius of $R < 0.3$ of the jet's axis. The hadron must be one of the initial hadrons formed after hadronisation. The jet is otherwise labelled as a $c$-jet if no $b$ hadron is found, but a $c$ hadron is found satisfying the same requirements.
+    \item \textbf{Ghost matching or association:} This strategy is again applied exclusively at hadron level. The four-momentum of the heavy flavour hadrons found within an event are suppressed to near-zero. The jet clustering algorithm is then applied. If the ghost hadron is found as a constituent of the reclustered jet, the jet is labelled as the flavour corresponding to the hadron species. $B$ flavour takes precedence over $c$ flavour.
+\end{enumerate}
+
+As mentioned, however, these flavour labelling strategies are not robust to spurious flavour contributions arising from gluon splittings at NNLO and beyond. For instance, a wide-angle gluon splitting, as is shown in Figure~\ref{fig:nnlo} leads to the misidentification of a light jet from the ME as flavoured. These methods of labelling also jeopardise the IRC safety of the jet definition, as the number of flavoured particles in a jet, which determine its flavour label, is not an IRC safe observable.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{flavLabelling/NNLO-standard-issue.pdf}
+    \caption{A wide-angle gluon splitting to heavy flavours (1,2) in a $Z$+jets event which contaminates the flavour of jet 3~\cite{Caola:2023wpj}.}
+    \label{fig:nnlo}
+\end{figure}
+
+To resolve this issue, a number of flavour jet clustering algorithms have been proposed.
+
+The first such algorithm, known as \emph{Flavour-$k_t$}, was proposed in 2007 by Banfi, Salam and Zanderighi~\cite{Banfi:2007gu}. This algorithm was never widely adopted as it clusters jets with $k_t$-like kinematics, and thus more often leads to soft particles clustering together rather than with nearby hard particles\footnote{Equivalently, it can be said that $k_t$-like kinematics more often leads to irregularly shaped, rather than conical, jets.}~\cite{Cacciari:2008gp}.
+
+More recent proposals have succeeded in maintaining jets with anti-$k_t$ like kinematics. In general, these work by identifying flavour pairs which originate from a gluon splitting across the entire event. This is evaluated based on a criterion which, if satisfied, leads to the cancellation of flavour in the registry of the algorithm. The resulting flavour from these cancellations is what is assigned to the jet, which is clustered according to anti-$k_t$ algorithm. 
+
+The method of combining sources of flavour content within a jet is known as the \emph{flavour recombination scheme}. Here, flavour content typically refers to flavoured particles, which can be either heavy flavour partons or hadrons.  A few different flavour recombination schemes are in use. These include: \emph{any flavour}, \emph{net flavour}, and \emph{mod-2 flavour}. The any flavour recombination scheme, used in the strategies described in~\ref{Enum:matching}, defines a jet as flavoured as long as one flavoured particle is associated to it. The other two schemes combine flavour particles as the jet clustering takes place, taking either the net sum of the flavour content, defined as 1 for heavy flavour particles and $-1$ for heavy flavour anti-particles, or the sum modulo 2. The recombination schemes are outlined in Table \ref{tab:flavour_recombination_schemes}. 
+
+The any flavour recombination scheme suffers from the IRC-safety issues associated with counting flavoured particles described above. The flavour assigned based on the net flavour and mod-2 recombination schemes, on the other hand, does not change due to a $g\rightarrow b\bar{b}$ splitting, curing the IRC safety malady. On the other hand, the any flavour and mod-2 flavour recombination schemes have the benefit of being the most realistic, i.e.\ they are the ones most which can be most readily implemented in experiment. The mod-2 flavour recombination scheme has the added benefit of being robust against $B-\bar{B}$ oscillations when applied at hadron level.
+
+% Requires: \usepackage{amsmath}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|l|l|}
+    \hline
+    \textbf{Scheme} & \textbf{Consider a set of particles flavoured if $\ldots$} \\ \hline
+    any flavour & $\sum_i |f_i| > 0$ \\ \hline
+    net flavour & $\sum_i f_i \neq 0$ \\ \hline
+    mod-2 flavour & $\sum_i |f_i| \equiv 1 \mod 2$ \\ \hline
+    \end{tabular}
+    \caption{The different flavour recombination schemes used to assign flavour to a jet. Flavoured particles are assigned a value of $f_i = +1$, while flavoured anti-particles are assigned a value of $f_i = -1$. For unflavoured particles, $f_i = 0$. The sum runs over all particles \( i \) under consideration whose flavour should be combined~\cite{Behring:2025ilo}. }
+    \label{tab:flavour_recombination_schemes}
+\end{table}
+
+\section{The Next Generation of Algorithms}
+\label{sec:flavAlgs}
+
+We are now ready to describe the flavour jet algorithms in more detail. There are four such algorithms. They can all make use of either the net flavour or mod-2 flavour recombination schemes to maintain IRC safety. Throughout this chapter, the net flavour recombination scheme has been used unless otherwise stated. When results at hadron level are shown, it is understood that the flavour jet algorithms require undecayed heavy hadrons in order to meaningfully ascribe flavour to jets.
+
+\subsection{Soft-drop flavour (SDF)}
+
+The \code{SoftDrop} flavour algorithm is based on the \code{SoftDrop} grooming algorithm. It used the \code{SoftDrop} criterion (Eq.~\ref{eq:softdrop}) to determine whether a flavour pair originates from a gluon splitting~\cite{Caletti:2022hnc}. 
+
+Starting from a jet clustered with an algorithm of choice, the SDF algorithm proceeds as follows:
+\begin{enumerate}
+    \item The jet's constituents are reclustered using the \code{JADE} algorithm, following the distance metric given in Eq.~\ref{eq:jade}. 
+    \item At each step in the clustering procedure, the particles being clustered together are required to satisfy the \code{SoftDrop} criterion.
+    \item If the grooming step passes, sum the flavour content in the jet according to a recombination scheme and proceed with clustering algorithm..
+    \item If the grooming step fails, groom the soft branch and proceed with the clustering algorithm.
+\end{enumerate}
+
+The choice of the \code{JADE} algorithm for the reclustering step is fundamental due to certain orderings of partons in generalised $k_t$-jets at NNLO whose flavour cannot be made IRC safe with \code{SoftDrop} grooming. Since the \code{JADE} algorithm clusters soft particles together first, which can then be groomed with \code{SoftDrop}. The \code{JADE} reclustering step, however, necessarily entails a modification of anti-$k_t$ kinematics, assuming the initial jet considered was clustered with that algorithm. The modification is modest and often negligible in practice.
+
+To ensure IRC safety, the \code{SoftDrop} criterion must be applied with parameters $\beta > 0$ and $z_\text{cut} < \frac{1}{2}$. The values of $z_\text{cut} = 0.1$ and $\beta = 1$ or $\beta = 2$ are typically chosen.
+
+%io uso sempre beta = 1, devo controllare negli studi teorici
+
+\subsection{Flavoured anti-$k_t$ (CMP)}
+
+The flavoured anti-$k_t$ algorithm, or ~\cite{Czakon:2022wam} from the authors' name, modifies the distance measure used in anti-$k_t$ (Eq.~\ref{eq:gen-kt}) in order to capture soft, flavoured particles. Specifically, the distance measure $d_{ij}$ is modified through a damping function $S_{ij}$:
+
+\begin{equation}
+    d_{ij}^{(\text{flavoured})} = d_{ij}^{(\text{standard})} \times 
+    \begin{cases} 
+      S_{ij}, & \text{if both } i \text{ and } j \text{ have nonzero flavour of opposite sign and magnitude,} \\
+      1, & \text{otherwise.}
+    \end{cases}
+    \label{eq:flavoured_distance}
+\end{equation}
+which is applied exclusively to flavoured particles. The damping function is required to vanish for soft quark pairs, compared to the scale of the hard process. The function chosen which satisfies these properties is:
+
+% Requires: \usepackage{amsmath}
+\begin{equation}
+\begin{aligned}
+    S_{ij} &= 1 - \theta \left(1 - \kappa_{ij}\right) \cos\left(\frac{\pi}{2} \kappa_{ij}\right) \\
+    \text{with} \quad \kappa_{ij} &\equiv \frac{1}{a} \sqrt{\frac{\Omega_{ij}^2}{\Delta R^2}} \frac{p^2_{t,i} + p^2_{t,j}}{2p^2_{t,\max}} \\
+    \text{and} \quad \Omega_{ij}^2 &= 2 \left[ \frac{1}{\omega^2} \left( \cosh(\omega \Delta y_{ij}) - 1 \right) - \left( \cos \Delta \phi_{ij} - 1 \right) \right].
+\end{aligned}
+\label{eq:cmp}
+\end{equation}
+
+Here, $\theta$ is the Heaviside function, $p_{t, \text{max}}$ is some hard scale, $a$ is a parameter used for tuning, and $\omega$ is a parameter which regulates the distance measure in such a way as to ensure IRC safety. The values of $a = 0.1$, $\omega = 2$ are adopted throughout and $p_{t,\text{max}}$ is dynamically set to the $p_t$ of the hardest subjet at each step in the clustering procedure.
+
+With such a damping function, the CMP algorithm reduces to the anti-$k_t$ algorithm in the absence of soft flavour pairs, and modifies the kinematics slightly when they are present. We can thus speak of \emph{approximate} anti-$k_t$ kinematics, though the modifications are often negligible.
+
+\subsection{Flavour dressing (GHS)}
+
+As the name implies, the flavour dressing (or \textbf{G}auld \textbf{H}uss \textbf{S}tagnitto) algorithm~\cite{Gauld:2022lem} aims to decorate a set of jets with flavour. The algorithm starts with a set of flavour-agnostic jets clustered with an algorithm of choice and all particles which make up a given event. If the particle $p_i$ is a constituent of jet $j_k$, the distance $d(p_i, j_k)$ is saved. The distance between particles $p_i$ and $p_j$ $d(p_i, p_j)$ is saved as well if both particles are flavoured or if one is flavoured and they are both associated to the same jet. The distances between the objects are then evaluated, and the following considerations are made:
+
+\begin{itemize}
+    \item If $d(p_i, p_j) < d(p_i, j_k)$, the particle $k_{ij} = p_i + p_j$ is formed by summing the four-momenta and flavour content of the two particles. In the record of saved distances, $p_i$ and $p_j$ are replaced by $k_{ij}$.
+    \item If instead $d(p_i, p_j) > d(p_i, j_k)$, the particle $p_i$ is assigned to jet $j_k$ and all other records contains $p_i$ are discarded.
+    \item If the beam distance $d(p_i, B)$ is smaller than both $d(p_i, p_j)$ and $d(p_i, j_k)$, all saved distances containing $p_i$ are discarded.
+\end{itemize}
+The distances considered are:
+\begin{gather}
+    \label{uik}
+    d(p_i, p_k) = \max(p_{ti}, p_{tk})^{\alpha} \min(p_{ti}, p_{tk})^{2-\alpha} \Omega_{ik}^2 \\
+    d(p_i, B_{\pm}) = \max \left( p_{t_i}^{\alpha}, p_{t_{B_{\pm}}}^{\alpha}(y_i) \right) \min \left( p_{t_i}^{2-\alpha}, p_{t_{B_{\pm}}}^{2-\alpha}(y_i) \right)
+\end{gather}
+where $B_\pm$ takes into account the direction of positive/negative rapidity and
+\begin{equation}
+    p_{tB_\pm} = \max\left(p_{ti}^\alpha, p_{tB_\pm}^\alpha(y_i)\right)\min\left(p_{ti}^{2-\alpha}, p_{tB_\pm}^{2-\alpha}(y_i)\right),
+\end{equation}
+with $\alpha$ a parameter set to 1, $\Theta(0) = 1/2$,  and $\Delta y_{j_k} = y_{j_k} - y$. $\Omega^2_{ik}$ takes the same form as in Eq.~\ref{eq:cmp}. The parameter $\omega$ is set to 2 as default. To ensure IRC safety, the parameters must be chosen such that $\omega > 2 - \alpha$.
+
+This procedure is iterated until the set of saved distances is empty. The flavour of a jet is then the sum of that of the particles belonging to it. The flavoured jets obtained in this way maintain the initial kinematics of the flavour-agnostic algorithm, such as anti-$k_t$. This algorithm has the added benefit of potentially being applicable experimentally, as the flavoured particles can be proxies such as reconstructed secondary vertices.
+
+\subsection{Interleaved flavour neutralisation (IFN)}
+
+The Interleaved flavour neutralisation algorithm~\cite{Caola:2023wpj} can be applied as part of any jet clustering algorithm. When clustering two particles $i$ and $j$, with $i$ flavoured and $p_{ti} < p_{tj}$, the algorithm searches for flavour to cancel throughout the entire event. Given a pseudojet $i$, the distance measure described in Eq.~\ref{uik} and a threshold $u_\text{max}$, and a set $C$ off flavoured particles potentially stemming from soft gluon splittings with $i$ (neutralisation candidates), the algorithm proceeds as follows:
+
+\begin{enumerate}
+    \item A set $L$ of distances $u_{ik}$ for all elements $k \in C$ such that $u_{ik} < u_\text{max}$ is formed.
+    \item The element $k$ corresponding to $\inf(L)$ is identified.
+    \item If $k$ contains no flavour that can be neutralised with $i$, remove $u_{ik}$ from $L$ and return to step 2.
+    \item If $k$ is found to have flavour which can be neutralised with $i$, check first to see if there are no other particles whose flavour can be neutralised with $k$. Apply this algorithm recursively considering $k$ in the place of $i$. 
+    \item If $k$ and $i$ are still found to be compatible candidates, neutralise as much flavour in $i$ as possible with that of $k$.
+    \item If $i$ is flavourless, exit. If not, remove the element $u_{ik}$ from $L$ and return to step 2. 
+    \item If the list of candidates is exhausted, combine the particles $i$ and $j$. Any remaining flavour in $i$ is to be summed in accordance with some flavour recombination scheme.
+\end{enumerate}
+
+The IFN algorithm is only called if $i$ is the softer particle being combined and $i$ is flavoured. If $j$ is the flavoured particle, the pseudojet $p_{ij}$ simply takes the flavour of $j$. If this is not the case, the list $L$ of neutralisation candidates should include all pseudojets with flavour, including any flavoured jets already identified by the algorithm. 
+
+The result is a set of jets with the exact kinematics of the algorithm used to cluster them, usually anti-$k_t$. The algorithm depends on same two parameters as the GHS algorithm, $(\alpha, \omega)$, and the same choice of $(1,2)$ is possible, though the default choice is $(2,1)$. The clustering procedure with flavour neutralisation is illustrated in Figure~\ref{fig:ifn}.
+
+\begin{figure}
+    \centering
+
+    \subfloat[\label{a}]{%
+        \includegraphics[width=0.245\linewidth]{flavLabelling/neutralisation-a.pdf}    
+    }
+    \subfloat[\label{b}]{%
+        \includegraphics[width=0.245\linewidth]{flavLabelling/neutralisation-b.pdf}    
+    }
+    \subfloat[\label{c}]{%
+        \includegraphics[width=0.245\linewidth]{flavLabelling/neutralisation-c.pdf}    
+    }
+    \subfloat[\label{d}]{%
+        \includegraphics[width=0.245\linewidth]{flavLabelling/neutralisation-d.pdf}    
+    }
+    \caption{The steps in flavour neutralisation in the IFN algorithm. In Figure~\ref{a}, particles 1 and 2 are a heavy flavour pair arising from a soft gluon splitting, and particles 2 and 3 are meant to be clustered. In Figure~\ref{b}, it is found that the particles 1 and 2 satisfy the distance ~\ref{uik}, and so their flavour is neutralised as shown in Figure~\ref{c}. The clustering can thus proceed as in Figure~\ref{d}, combining particles 2 and 3 with no flavour~\cite{Caola:2023wpj}.}
+    \label{fig:ifn}
+\end{figure}
+
+\section{Flavoured jet algorithms: A comparative study}
+\label{sec:FlavAlgComparison}
+At the 2023 Les Houches Workshop, a detailed study of the differences between the flavour jet algorithms was initiated, from various points of views. Les Houches has a tradition of bringing together the theory and experimental communities to devise new ideas with which to tackle the challenges facing the Standard Model. Flavour labelling is one such topic which could benefit from the collaboration between these communities. This section is dedicated to selected findings from those studies, published in~\cite{Behring:2025ilo}. I was actively involved in discussions which led up to this work since their inception, and more directly to the results published in Sections~\ref{eo constituents} and \ref{sec:flavFTag}.
+
+\subsection{Bridging the gap from theory to experiment}
+
+\afterpage{%
+  \begin{landscape}
+    \begin{figure}
+      \centering
+      \definecolor{bg-exp-cyan}{HTML}{CEECEC}
+      \definecolor{bg-th-tan}{HTML}{F0E3C4}
+      \definecolor{labelling-blue}{HTML}{144B8F}
+      \definecolor{unfolding-green}{HTML}{157D12}
+      \definecolor{tagging-red}{HTML}{D42A21}
+      \begin{tikzpicture}[
+          very thick,
+          on grid,
+          node distance = 2.5cm and 3.5cm,
+          anchor = center,
+          align=center,
+          font=\footnotesize,
+          arr/.style={
+            ->,
+            >=stealth,
+            shorten > = 1mm,
+            shorten < = 1mm,
+            very thick
+          },
+          concept box/.style={
+            draw,
+            semithick,
+            fill=white,
+            rounded corners,
+            align=center,
+            minimum height=1cm,
+            minimum width=2cm
+          }
+        ]
+        \pgfdeclarelayer{background}
+        \pgfdeclarelayer{unfolding}
+        \pgfsetlayers{background,unfolding,main}
+
+        % Backgrounds and headings
+        \begin{pgfonlayer}{background}
+          \fill[bg-th-tan,anchor=north west] (0,0) rectangle (11,-13.5);
+          \fill[bg-exp-cyan,anchor=north west] (11,0) rectangle (22,-13.5);
+        \end{pgfonlayer}
+        \node (th heading) at (5.5,-0.6)  {\textbf{Theory / Simulation}};
+        \node (ex heading) at (16.5,-0.6) {\textbf{Experiment / Data}};
+
+        % Theoretical event stages
+        \node[concept box] (th hard ev)     at (2,-2.5)               {Hard \\ scattering};
+        \node[concept box] (th parton ev)   [below=of th hard ev]   {Parton \\ level};
+        \node[concept box] (th hadron ev)   [below=of th parton ev] {Hadron \\ level};
+        \node[concept box] (th detector ev) [below=of th hadron ev] {Detector \\ level};
+        % Experimental event stages
+        \node[concept box] (ex data ev)  [right=18cm of th detector ev] {Measured \\ physics objects};
+        \node[concept box] (ex data2 ev) [below=of ex data ev] {Low-level \\ detector hits};
+        % Arrows for theoretical simulation chain
+        \draw[arr]
+          (th hard ev)
+          -- node[left,align=right] {parton \\ shower}
+          (th parton ev);
+        \draw[arr]
+          (th parton ev)
+          -- node[left,align=right,text width=4em] {ha\-dro\-ni\-sa\-tion}
+          (th hadron ev);
+        \draw[arr]
+          (th hadron ev)
+          -- node[left,align=right] {detector \\ simulation}
+          (th detector ev);
+        \draw[arr]
+          (ex data2 ev)
+          -- node[right,align=left] {reconstruct \\ tracks, calo \\ clusters, \dots}
+          (ex data ev);
+
+        % Jets at different levels
+        \node[concept box] (th fo jets)     [right=of th hard ev]     {Fixed-order \\ truth jets};
+        \node[concept box] (th parton jets) [right=of th parton ev]   {Parton-level \\ truth jets};
+        \node[concept box] (th truth jets)  [right=of th hadron ev]   {hadron level \\ truth jets};
+        \node[concept box] (th reco jets)   [right=of th detector ev] {Reconstructed \\ jets};
+        \node[concept box] (ex data jets)   [left =of ex data ev]     {Data \\ jets};
+        % Arrows for jets
+        \draw[arr] (th hard ev)     -- (th fo jets);
+        \draw[arr] (th parton ev)   -- (th parton jets);
+        \draw[arr] (th hadron ev)   -- (th truth jets);
+        \draw[arr] (th detector ev) -- (th reco jets);
+        \draw[arr] (ex data ev)     -- (ex data jets);
+
+        % Observables
+        \node[concept box] (th fo obs)       [right=of th fo jets]
+          {Fixed-order \\ observables};
+        \node[concept box] (th parton obs)   [right=of th parton jets]
+          {Parton-level \\ observables};
+        \node[concept box] (th hadron obs)   [right=of th truth jets]
+          {hadron level \\ observables};
+        \node[concept box] (th detector obs) [right=of th reco jets]
+          {Detector-level \\ observables};
+        \node[concept box] (ex detector obs) [left =of ex data jets]
+          {Measured \\ observables};
+        \node[concept box] (ex hadron obs)   [above=of ex detector obs]
+          {Detector-\\corrected \\ observables};
+        % Arrows for observables
+        \draw[arr] (th fo jets)     -- (th fo obs);
+        \draw[arr] (th parton jets) -- (th parton obs);
+        \draw[arr] (th truth jets)  -- (th hadron obs);
+        \draw[arr] (th reco jets)   -- (th detector obs);
+        \draw[arr] (ex data jets)   -- (ex detector obs);
+
+        % flavour labelling
+        \draw[arr,labelling-blue]
+          (th hard ev)
+          to[out=35,in=145] node[above] {flavour labelling}
+          (th fo jets);
+        \draw[arr,labelling-blue]
+          (th parton ev)
+          to[out=35,in=145] node[above] {flavour labelling}
+          (th parton jets);
+        \draw[arr,labelling-blue]
+          (th hadron ev)
+          to[out=35,in=145] node[above] {flavour labelling}
+          (th truth jets);
+
+        % b tagging
+        \coordinate (train b tagging) at ($(th reco jets)+(-0.4,0.7)$);
+        \draw[labelling-blue,dashed,very thick]
+          ($(th hadron ev.south east)+(0.1,0.2)$)
+          to[out=0,in=125]
+          (train b tagging);
+        \draw[tagging-red,very thick]
+          (th detector ev.north east)
+          to[out=35,in=145]
+          (train b tagging);
+        \draw[arr,tagging-red,shorten < = 0mm,shorten > = 0mm]
+          (train b tagging)
+          --
+          (th reco jets);
+        \node[text=tagging-red]
+          (train b tagging label)
+          at ($(train b tagging)+(-2.0,0.7)$)
+          {train \\ flavour \\ tagging};
+        \draw[arr,tagging-red]
+          (ex data ev)
+          to[out=135,in=45] node[above] {apply \\ flavour tagging}
+          (ex data jets);
+
+        % unfolding
+        \begin{pgfonlayer}{unfolding}
+          \draw[arr,unfolding-green]
+            (th detector obs)
+            -- node[right,align=left] {construct \\ unfolding}
+            (th hadron obs);
+          \draw[arr,unfolding-green]
+            (ex detector obs)
+            -- node[left,align=right] {apply \\ unfolding}
+            (ex hadron obs);
+        \end{pgfonlayer}
+
+        % theory <-> experiment comparison
+        \draw[arr,<->]
+          (th hadron obs)
+          -- node[above] {compare}
+          (ex hadron obs);
+        \draw[arr,<->,dashed]
+          (th detector obs)
+          -- node[above] {compare}
+          (ex detector obs);
+      \end{tikzpicture}
+      \caption{A simplified overview of a generic jet-based analysis, illustrating both the main steps for calculating theoretical predictions and for analysing experimental data. The coloured arrows show the propagation of information about flavour~\cite{Behring:2025ilo}.}
+      \label{fig:flowchart}
+    \end{figure}
+  \end{landscape}
+}% end afterpage
+
+To better understand the close link between the experimental and theory definitions of jets, it is useful to describe the typical way in which theory and experiment are used to compare jet predictions and measurements. The simplified picture of a generic jet analysis is illustrated in a flowchart given in Figure~\ref{fig:flowchart}. This chart displays how information is translated from first-principles theory and from low-level information recorded by the particle detectors through different stages of simulation and experimental analysis to quantities that can be compared directly. The left-hand side of Figure~\ref{fig:flowchart} sketches how theory predictions are obtained, starting from the description of events at the level of hard scattering. Events are successively translated to parton level by applying a parton shower, then to the hadron level through hadronisation and finally to the detector level by feeding the hadronic final state through a simulation of an experimental detector’s response. In principle, we can analyse the events at any of these stages, construct jets by applying a jet algorithm to the events and calculate observables such as fiducial cross sections or distributions from these objects. Jets constructed from simulated events at parton or hadron levels are called truth jets. From them we can calculate fixed-order, parton-level, or hadron level observables, respectively. Jets obtained from simulated detector-level events are called reconstructed jets, and we calculate detector-level observables from them. 
+
+On the right-hand side of Figure~\ref{fig:flowchart}, low-level detector objects (tracker hits, energy deposits in calorimeter cells, etc.) are used to reconstruct higher-level physics objects (tracks, topological cell clusters, displaced vertices, ParticleFlow objects, etc.)\footnote{This reconstruction will be described in detail in Chapter~\ref{ch:atlas}.}. We call jets constructed from these physics objects data jets and observables calculated from them measured observables. There is therefore a level of parity between reconstructed jets and data jets, as well as detector-level observables and measured observables, which are at the same level but reconstructed using either simulation or experimental data, respectively.
+
+The predictions for detector-level observables can be compared to measured observables (dashed black arrow in the flowchart), and this is done both in the context of measurements of Standard Model processes and in the context of searches for new physics. But since these quantities are detector specific, unfolding is often used to translate detector-specific measurements to hadron level (green arrows in the flowchart), making them more universal. Unfolding requires constructing a response matrix by comparing predictions for hadron level observables to detector-level observables calculated on the same simulated events.5 This unfolding procedure is then applied to the measured observables to obtain detector-corrected observables. These unfolded results can finally be compared to predictions for hadron level observables, as well as to results from other experiments
+
+\subsection{Flavour recombination scheme}
+\label{flav recomb}
+
+Before discussing the IRC safe flavoured jet algorithms, we wish to examine the impact of the choice of flavour recombination scheme. To ensure IRC safety from higher-order effects in QCD, either the mod-2 or net flavour recombination schemes must be employed, rather than the any flavour scheme typically utilised in experimental analyses. 
+
+To understand the effect of modifying the choice of flavour recombination scheme, a study on hadron level simulated data was carried out. Here, $pp \rightarrow Z+\mu^+\mu^-$+jet matrix elements were calculated at NLO and showered using \code{Herwig7}~\cite{Bellm:2015jjp} and \code{Sherpa}~\cite{Sherpa:2024mfk} at $\sqrt{s} = 13$~TeV. Two different \code{Herwig7} showers were carried out, one using the Lund string hadronisation model, and the other using the cluster hadronisation model. Jets were clustered suppressing the decays of the heavy hadrons and with a radius of 0.5. They are required to have $p_t > 30$~GeV and rapidity $\vert y \vert < 2.4$. The transverse momentum of the individual muons and the dimuon pair must be greater than 20~GeV $p_t^\mu > 20$~GeV and $p_t^{\mu\mu} > 20$~GeV. The mass of the dimuon pair must be close to that of the $Z$ $77 < m^{\mu\mu}/\text{GeV} < 111$. Individual muons are also required to be in the central region $\vert y^\mu \vert < 2.4$. $b$-jets and $c$-jets were identified using ghost and cone labelling with the any flavour recombination scheme, and with anti-$k_t$ labelling using the mod-2 flavour recombination scheme.
+
+Figure~\ref{fig:summary_ppzj_nlops_bottom_exp} shows the leading $b/c$-jet distributions for these predictions with anti-$k_t$, ghost, and cone labelling. For both the \code{Sherpa} and \code{Herwig7} showers, the mod-2 flavour recombination scheme leads to a reduction in the number of jets labelled as $b/c$ due to the elimination of heavy flavour pairs stemming from soft gluon splittings. This reduction increases as jet $p_t$, since the number of soft gluon splitting increases as the energy scale increases. The effect is also more pronounced for $c$-jets, as the number of $g\rightarrow c\bar{c}$ splittings is expected to be greater than $g\rightarrow b\bar{b}$ due to the masses of the particles, and for jets labelled with ghost labelling. In this case, the difference compared to cone labelling is attributed to the labelling itself: in cone labelling, a radius of $\Delta R < 0.3$ between the hadron and jet is considered, whereas for ghost labelling the radius is effectively equal to that of the jet radius.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth,page=3]{flavLabelling/summary/ppzj_bottom_nlops_comparisons_exp.pdf}%
+    \includegraphics[width=0.5\linewidth,page=3]{flavLabelling/summary/ppzj_charm_nlops_comparisons_exp.pdf}
+    \caption{NLO+PS predictions from \code{Sherpa} and \code{Herwig7} for $pp \rightarrow Z + b$ (left) and $pp \rightarrow Z + c$ (right) in central kinematics. Different experimentally inspired jet labelling algorithms are compared to the anti-$k_t$ algorithms with mod-2 recombination for the transverse momentum of the leading $b$/$c$-jet. Additionally, differences between the cluster and string hadronisation model for \code{Herwig7}, as well as parton and hadron level for \code{Sherpa}, are shown~\cite{Behring:2025ilo}.}
+    \label{fig:summary_ppzj_nlops_bottom_exp}
+\end{figure}
+
+The labelling is effectively identical for both hadronisation models considered for the \code{Herwig7} showers. When comparing parton/hadron level, some differences arise between jets labelled with ghost/cone and anti-$k_t$. These differences are more marked for $c$-jets.
+
+\subsection{Neutralisation of flavour from gluon splittings}
+\label{sec:ifnNeutralisationResults}
+We turn our attention now to the differences between the various flavour jet algorithms. Although they were all designed to address the same concern, the exact approach varies. 
+
+Figure~\ref{fig:summary_ppzj_lops_bottom} shows LO+PS $Z+$jet events produced with selections similar to those in Section~\ref{flav recomb} using \code{Pythia8} v8.306~\cite{Pythia:2022pfr} without hadronisation. It compares the number of $b$-jets found using the flavour jet algorithms with certain configurations of parameters to those found with anti-$k_t$ labelling. It is clear that the number of jets identified is lowest for the IFN algorithm with $\alpha = 2$.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.49\linewidth,page=2]{flavLabelling/lops_ppzjet/pythia-Zj-flav-algs.pdf}    \caption{The ratio, to net-flavour anti-$k_t$ (in red), of IFN ($\alpha=1$ and $\alpha=2$, blue), CMP ($a=0.1$, green), GHS ($\alpha=1$, $\omega=2$, black) and SDF ($\beta=2$, $z_{\text{cut}}=0.1$, yellow), for the transverse momentum of the leading $b$-labelled jet $p_{t,b\text{-jet}}$~\cite{Behring:2025ilo}.}
+    \label{fig:summary_ppzj_lops_bottom}
+\end{figure}
+
+This effect is attributed to the neutralisation of the most heavy flavour pairs coming from soft gluon splittings. To prove this, Figure~\ref{fig:lops_ppzjet_scatter_all} shows a series of scatter plots of a subset of the generated $Z$+jet events with at least two $b$-quarks at parton level and leading $b$-jet $p_t > 200$~GeV, as decided by anti-$k_t$ labelling. On the x-axis, the angular distance between the $b$-quarks is shown, while on the y-axis the $p_t$ fraction of the jet carried by the leading $b$-quark in the jet $p_{t,b}/p_{t, b\text{-jet}}$ is reported. Events where the flavour content originates from wide-angle, soft gluon splittings populate mostly the bottom-left corner. The exact truth origin of all events in the plot is shown in Figure~\ref{fig:z+j_lops_truth}, showing true $Z+b$ events, $Z+q$ events containing mostly light quarks where $b$-jets tend to originate from gluon splittings, and $Z+g$ events, where $b$-jets arise from both soft and hard gluon splittings. The other figures show the events labelled as $b$-jets by anti-$k_t$ and each individual flavour jet algorithm in grey, or just by anti-$k_t$ in red. It is clear that IFN, as declared, is better at identifying genuine $b$-jets than the other algorithms.
+
+\begin{figure}
+    \centering
+    \subfloat[Truth\label{fig:z+j_lops_truth}]{%
+        \includegraphics[width=0.48\linewidth, page=5]{flavLabelling/lops_ppzjet/pythia-Zj-scatter.pdf}    
+    }\\
+    \subfloat[IFN\label{lops_figb}]{%
+        \includegraphics[width=0.48\linewidth, page=1]{flavLabelling/lops_ppzjet/pythia-Zj-scatter.pdf}    
+    }  
+       \subfloat[CMP\label{lops_figc}]{%
+        \includegraphics[width=0.48\linewidth, page=2]{flavLabelling/lops_ppzjet/pythia-Zj-scatter.pdf}    
+    }\\    \subfloat[GHS\label{lops_figd}]{%
+        \includegraphics[width=0.48\linewidth, page=3]{flavLabelling/lops_ppzjet/pythia-Zj-scatter.pdf}    
+    }    \subfloat[SDFlav\label{lops_fige}]{%
+        \includegraphics[width=0.48\linewidth, page=4]{flavLabelling/lops_ppzjet/pythia-Zj-scatter.pdf}    
+    } 
+    
+    \caption{$Z+$jets events with at least 2 $b$-quarks and a $b$-jet with $p_t > 200$~GeV as identified with anti-$k_t$ as a function of $\Delta R_{b\bar{b}}$ and
+      $p_{t,b} / p_{t,b\text{-jet}}$. In Figure~\ref{fig:z+j_lops_truth} the truth origin of these events is shown. In Figures~\ref{lops_figb}$-$\ref{lops_fige}, the label assigned by the selected jet algorithm vs.\ anti-$k_t$ is shown, with grey events labelled as $b$ by
+      both net flavour anti-$k_t$ and the algorithm under consideration and red events labelled as $b$ by net flavour anti-$k_t$, but not by the flavoured algorithm~\cite{Behring:2025ilo}.}
+    \label{fig:lops_ppzjet_scatter_all}
+\end{figure}
+
+The results shown in Figure~\ref{fig:summary_ppzj_lops_bottom} are valid also at NLO, as shown in the top panels of Figure~\ref{fig:summary_ppzj_nlops_bottom} for $b/c$-jets. In this case, the \code{Sherpa} and \code{Herwig7} were used as parton showers along with the mod-2 flavour recombination scheme. The figure also shows how the results remain valid at hadron level independently of the hadronisation model chosen. When comparing the results for the \code{Sherpa} sample at hadron and parton level, differences in the trends observed for the flavour jet algorithms arise for high-$p_t$ $c$-jets.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.58\linewidth,page=3]{flavLabelling/summary/ppzj_bottom_nlops_comparisons.pdf} \\
+    \includegraphics[width=0.58\linewidth,page=3]{flavLabelling/summary/ppzj_charm_nlops_comparisons.pdf}
+    \caption{NLO+PS predictions from \code{Sherpa} and \code{Herwig7} for $pp \rightarrow Z + b$ (top) and $pp \rightarrow Z + c$ (bottom) in central kinematics. Different jet algorithms (CMP$\Omega$ (green), SDF (light blue), GHS (yellow), IFN (red) are compared for the transverse momentum of the leading $b$/$c$-jet. Additionally, differences between the cluster and string hadronisation model for \code{Herwig7}, as well as parton and hadron level for \code{Sherpa}, are shown. The vertical bars indicate statistical uncertainties~\cite{Behring:2025ilo}.}
+    \label{fig:summary_ppzj_nlops_bottom}
+\end{figure}
+
+\subsection{NNLO fixed order predictions}
+
+The flavoured jet algorithms are studied in the context of fixed order predictions at NNLO. The process studied is $pp \rightarrow W^+(\rightarrow e^+\nu_e)H(\rightarrow b\bar{b})$.
+
+Events must contain two $b$-labelled jets of radius $R = 0.4$ with $p_t > 25$~GeV and $\vert \eta \vert < 2.5$. The Higgs boson is reconstructed by selecting the pair of $b$-labelled jets with invariant mass closest to the mass of the Higgs, 125~GeV. The positron is required to have $p_t > 15$~GeV and $\vert \eta \vert < 2.5$. Predictions are obtained using the 5FS. 
+
+Figure~\ref{fig:nnloWHbb} shows the leading $b$-jet $p_t$ spectrum ($p_{t,b_1}$) and the $p_t$ of the Higgs boson ($p_{t,H(b\bar{b})}$) resulting from the calculation compared to the four flavoured jet algorithms described in Section~\ref{sec:flavAlgs} and flavour-$k_t$. The kinematic differences between this last algorithm and the others are apparent. Consistently with the results presented in Section~\ref{sec:ifnNeutralisationResults}, the IFN algorithm is still found to identify fewer flavoured jets than the other anti-$k_t$-like algorithms.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.495\linewidth]{flavLabelling/jetalgo-comparison-mb0-pTb1-nnlo.pdf}
+    \includegraphics[width=0.495\linewidth]{flavLabelling/jetalgo-comparison-mb0-pTH-nnlo-with-fkt.pdf}
+    \caption{The $p_{t,b_1}$ (left) and $p_{t,H(b\bar{b})}$ (right) distributions for flavour-$k_t$ and the novel flavoured jet algorithms resulting from an NNLO fixed-order calculation of $pp \rightarrow W^+(\rightarrow e^+\nu_e)H(\rightarrow b\bar{b})$~\cite{Behring:2025ilo}.}
+    \label{fig:nnloWHbb}
+\end{figure}
+
+\subsection{Impact of hadron reconstruction on flavoured jet definitions}
+\label{eo constituents}
+We consider now the effect of the constituents used in the jet definition on flavour labelling. In experimental collaborations, such as ATLAS and CMS, flavour labelling is done on jets whose fiducial definitions match the experimental reality as closely as possible using cone or ghost labelling. This means that the final states considered when clustering jets consist of all stable, visible particles in the event, and flavour is assigned to these jets. This is in contrast to the jet definitions used by theorists where in many instances the jets are not clustered in the most realistic manner, i\.e\. when suppressing hadron decay for anti-$k_t$ labelling. 
+
+This difference has critical implications for jet kinematics. Consider $Z+b\bar{b}$ and $Z+c\bar{c}$ events generated at LO with \code{MadGraph\_aMC\@NLO} v3.5.8~\cite{Alwall:2014hca} and showered with \code{Pythia8} v8.313. Hadronisation was allowed to occur. Jets are clustered following the prescription used by the ATLAS \code{AntiKt04TruthJet} collections, namely with all stable, visible particles within $\vert \eta \vert < 2.5$ and with radius $R = 0.4$. An exception is made for jets clustered with the flavour jet algorithms. In this case, heavy hadron decays are artificially suppressed as required by the algorithms. The undecayed hadrons are treated as stable.
+
+Jets are required to fall within the central region, i.e $\vert y \vert $ < 2.5 and have $p_t > 20$~GeV. $Z\rightarrow l^+l^-$ events are considered, where the individual leptons are required to have $p_t^{lep} > 27$~GeV, $\vert \eta_{lep} \vert < 2.5$ and dilepton mass $76 < m_{ll}/\text{GeV} < 106$. Events with at least one $b/c$-jets are selected. The two leading $b/c$-jets are selected when multiple labelled jets are found.   
+
+As can be seen in Figure~\ref{fig:decay}, there are significant kinematic differences between the labelled jets as $b/c$ with ghost and cone labelling and with the flavour jet algorithms. These differences are accentuated at low-$p_t$.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.485\linewidth]{flavLabelling/leadJetPt_decayed_b.pdf}
+    \includegraphics[width=0.485\linewidth]{flavLabelling/leadJetPt_decayed_c.pdf}
+    \caption{The $p_t$ distribution of leading 
+    $b$-jets (left) and leading $c$-jet (right) identified with
+the experimental ghost and cone labelling schemes with stable final state particles and flavoured jet algorithm with undecayed heavy hadrons. Ratios are compared to the distribution for jets obtained with ghost labelling~\cite{Behring:2025ilo}.}
+    \label{fig:decay}
+\end{figure}
+
+This is attributed to the difference in constituents. Figure~\ref{fig:undecay} shows how, if the constituent definition prescribed by the flavour jet algorithms is used in all labelling schemes, the kinematic differences disappear and the expected behaviour is observed throughout the entire $p_t$ spectrum.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.485\linewidth]{flavLabelling/leadJetPt_undecayed_b.pdf}
+    \includegraphics[width=0.485\linewidth]{flavLabelling/leadJetPt_undecayed_c.pdf}
+    \caption{The $p_t$ distribution of leading 
+    $b$-jets (left) and leading $c$-jet (right) identified with
+the ghost cone labelling schemes and the flavoured jet algorithms, all with undecayed heavy hadrons. Ratios are compared to the distribution for jets obtained with ghost labelling~\cite{Behring:2025ilo}.}
+    \label{fig:undecay}
+\end{figure}
+
+These results highlight the importance of harmonisation. Ideally, the new flavour algorithms would be adopted by experimental collaborations, at least in the context of precision physics in order to more accurately predict relevant cross sections for the production of heavy flavour particles, correcting for effects such as gluon splittings. If this is to be done, the collaborations must either revisit their truth-level jet definitions in order to take into account kinematic effects arising from the difference in constituents, or implement an additional unfolding-like step to correct for the differences that arise when using these novel labelling schemes. 
+
+\subsection{Consequences for tagger training}
+\label{sec:flavFTag}
+Other practical implications of the inadequacy of the current flavour labelling strategies in use in experiments can be found in flavour tagging training. 
+
+Let us consider one of the samples used for training by the ATLAS Collaboration, $Z^\prime \rightarrow c\bar{c}$. The events are generated at LO and showered with \code{Pythia8}, and jets are required to have $\vert \eta \vert < 2.5$ and $p_t > 250$~GeV. In all cases, heavy hadron decays are suppressed. 
+
+In Figure~\ref{fig:ATLAS-FTAG-comparison}, we show how for intermediate values of $p_t$ in this range, between 1.5-4~TeV, there is a surplus of jets labelled as $c$-jets by the flavour jet algorithms and anti-$k_t$ labelling scheme compared to cone. If instead we consider $b$-jet labelling, the expected behaviour is found, namely a surplus of jets labelled by the cone algorithm throughout the entire $p_t$ spectrum. Figure~\ref{b_or_c} shows the reason behind this anomaly: soft  $g \rightarrow b\bar{b}$ contaminate the $c$-jets with $b$ flavour. Algorithms which more aggressively remove gluon splittings will tend to assign the correct flavour, while those which less aggressively remove these splittings will tend to assign a dual ``$bc$'' flavour. As $b$ flavour is assigned preferentially over $c$ flavour, this leads to a mislabelling. When considering the dual flavour, the expected behaviour returns.
+
+\begin{figure}
+    \centering
+    \subfloat[\label{or_b}]{
+    \includegraphics[width=0.49\linewidth]{flavLabelling/NETno-grey-lineBLACKANTIKT-MAINCIFN-CMP-ATLAS-compare-pt-with-ratio.pdf} }
+    \subfloat][\label{or_c}]{\includegraphics[width=0.49\linewidth]{flavLabelling/NETno-grey-line-BLACKANTIKT-MAINCBFN-CMP-ATLAS-compare-pt-with-ratio}}\\
+    \subfloat[\label{b_or_c}]{\includegraphics[width=0.49\linewidth]{flavLabelling/NETBLACKANTIKT-MAINCIFN-CMP-ATLAS-compare-pt-with-ratio.pdf}}
+    
+    \caption{The $p_t$ spectra of $c$-jets (top left) and $b$-jets (top right) found in $pp \rightarrow Z\prime \rightarrow c \bar{c}$ events, and the same $p_t$ spectrum including jets containing both $b$ and $c$-jets as identified by the cone algorithm (bottom)~\cite{Behring:2025ilo}.}
+    \label{fig:ATLAS-FTAG-comparison}
+\end{figure}
+
+This again highlights a shortcoming in flavour labelling used by the ATLAS collaboration. It is necessary to take into account multiple labels when developing a training sample to avoid misidentifying hard $c$-jets as $b$-jets. In these cases, the label assigned is wrong even if one is purely interested in fragmentation studies, as these are jets where the $p_t$ of the $c$-quark can be far greater than than that of the $b$-quark arising from the splitting. 
+
+\subsection{Jet substructure}
+
+Finally, we investigate the effects of flavour labelling on jet substructure, specifically concentrating on the Lund Jet Plane and the jet angularities. 
+
+The investigation of the Lund Jet Plane was carried out as part of the study described in Section~\ref{eo constituents}. The aim was to understand if, correcting for the effect of jet constituents, there were significant differences in the substructure found by the algorithms and the current experimental labelling strategies (ghost). To account for the difference in the constituents, only jets with undecayed heavy hadrons were considered.
+
+Figure~\ref{GHOST-IFN lp} shows the ratio of the Lund Jet Planes for jets labelled according to the IFN algorithm and the ghost algorithm. In the principle part of the plane, there are no significant differences for $b$-jets, and slight differences of the order of a few percent for $c$-jets at high $k_t$.  In less populated regions of the plane, jets labelled with ghost are characterised by more emissions, up to over 10\% in the region of the plane populated by wide-angle, hard emissions. 
+
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.49]{flavLabelling/lpr_b_ghost_undecayed.pdf} 
+    \includegraphics[scale=0.49]{flavLabelling/lpr_c_ghost_undecayed.pdf}
+    \caption{The ratio of the Lund Jet Plane for leading $b/c$-jets (left/right) identified with ghost labelling containing undecayed $b/c$ hadrons and those identified with IFN.}
+    \label{GHOST-IFN lp}
+\end{figure}
+
+In Figure~\ref{fig:nlops_ppzjet_jss_ang}, we show the jet angularities spectrum predicted as part of the study carried out in Section~\ref{flav recomb}. The MC generation was carried out at NLO+PS without hadronisation, and sensitivity to the heavy flavour quark mass is investigated by setting it to zero. Angularities with $\alpha = 0.5$ are shown for $b$-jets and $c$-jets. In the top panel, the differential cross section for the angularities for \code{Sherpa}, the \code{Herwig7} angular ordered shower with quark mass, and the \code{Herwig7} dipole shower without quark masses is shown for anti-$k_t$ labelled jets with the mod-2 recombination scheme. The ratio of the flavoured jets, again with the mod-2 recombination scheme, is then shown to the anti-$k_t$ labelled jets for the three parton showers. 
+
+The predictions obtained with the \code{Sherpa} and \code{Herwig7} angular ordered showers agree with each other, and the distribution of the angularities is found to be shifted towards larger values compared to the predictions obtained with the massless splitting functions. Small differences are seen between the various flavoured jets algorithms, but these are enhanced when considering $c$-jets. The excess of jets labelled with the ghost algorithm is consistent with wide-angle radiation entering the jet. No differences are observed between the spectrum predicted by the algorithms for $b$-jets and $c$-jets when the massless dipole shower is considered.  
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth,page=16]{flavLabelling/ppzj_bottom_nlops_comparisons_appendix.pdf}%
+    \includegraphics[width=0.5\linewidth,page=16]{flavLabelling/ppzj_charm_nlops_comparisons_appendix.pdf}
+    \caption{The Les Houches angularity $A_{\alpha = 0.5}$ of the leading $b$-jet (left) and $c$-jet (right) for NLO+PS predictions obtained at parton level with massive \code{Sherpa} and \code{Herwig7} angular ordered showers and for a massless \code{Herwig7} dipole shower~\cite{Behring:2025ilo}.}
+    \label{fig:nlops_ppzjet_jss_ang}
+\end{figure}
+
+\section{Conclusions}
+In this Chapter, we've shown how soft gluon splittings at NNLO and beyond can introduce flavour to events which leads to jet mislabelling. We have introduced new flavour jet algorithms which resolve this problem by recognising and neutralising flavour stemming from these soft gluon splittings. We have shown how these algorithm are effective both at parton level and hadron level, and highlighted areas in experiment, namely in flavour tagging training, where the effect of soft gluon splittings to $b\bar{b}$ pairs can lead to the misidentification of jets in data due to the prioritisation of a much softer $b$-hadron with respect to the hard $c$-hadron arising from the hard process. Additionally, we have identified the need for harmonisation in the definition of jet constituents between theory and experiment required to avoid intrinsic kinematic differences in jets which in turn affect which jets are identified as flavoured or not. Lastly, we have studied the effects of the novel flavour jet algorithms on jet substructure, specifically the jet angularities and the Lund Jet Plane, and shown how they are able to reduce the number of wide-angle emissions in jets arising from  gluon splittings.
+
+\end{document}

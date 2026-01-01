@@ -6,23 +6,20 @@
 \usepackage{epigraph}
 \usepackage{graphicx}
 \usepackage{xcolor}
-\usepackage{draftwatermark}
 \usepackage{everypage}
 \author{Alberto Rescia}
-
 	
 \newcommand{\todo}[1]{{\textcolor{red}{#1}}}
-\SetWatermarkScale{4}
 
 \begin{document}
 
 \chapter[$Z+b\bar{b}$ JSS]{Jet substructure observables in the $Z+b\bar{b}$ final state in the ATLAS experiment}
-
+\label{ch:z+bb intro}
 The main focus of this thesis is a measurement of the Lund Jet Plane and other substructure observables on $Z+b\bar{b}$ final states. The analysis focuses on boosted and resolved topologies. For comparison, final states containing $Z+jj$, where j indicates a light-flavour jet, are also considered. This chapter will introduce the measurement in detail. First, a motivation for the measurement and description of the observables of interest will be given. Subsequently, a details review of selections, final states, data and simulation samples utilised will be given. 
 
 \section{Motivation}
 
-This analysis aims to study the properties of b-jets. Currently, little is known about the radiation pattern within these jets, and, in  fact, this thesis describes the first ever measurement of b-jet substructure. 
+This analysis aims to study the properties of the internal structure b-jets, highlighting in particular the differences when compared to light jets. Currently, little is known about the radiation pattern within these jets, and, in  fact, this thesis describes the first ever measurement of b-jet substructure at the ATLAS experiment. 
 
 Jet substructure is a relatively novel field, which only really took off with the start of the LHC programme in 2008 with the aim to identify the Higgs boson in the VH production mode and to study possible BSM resonances. 
 
@@ -37,64 +34,11 @@ This work represents the first ATLAS measurement of heavy flavour jet substrucut
 
 \section{Observables of interest}
 
-\subsection{The primary Lund Jet Plane}
-\label{lp}
-
-The primary Lund Jet Plane is the main observable which this analysis focuses on. The observable is particularly interesting due to a number of neat properties it possesses. 
-
-As the name would suggest, the Lund Jet Plane is tightly linked to parton shower development. The precursors to the Lund Plane were Lund diagrams, used to describe the kinematic distribution of radiation from a QCD dipole within a $y$-$k_t$ plane \cite{andersson1989coherence}. The kinematically allowed region of phase space forms a triangle bounded by $\vert y \vert < \ln(\sqrt{s}/k_t)$, leading to the plane's characteristic shape. 
-
-As the field of jet substructure began to take hold, the Lund diagram provided a way to visualise the effect of various techniques used to simplify analytic calculations, such as \emph{trimming}, \emph{pruning} and \emph{grooming} \cite{Dasgupta:2013ihk, Larkoski:2014wba}. The description was later adapted for jets in \cite{Dreyer:2018nbf}. In  this work, the authors used the plane to create a two-dimensional representation of the clustering history, and therefore structure, of a jet.
-
-The primary Lund Jet Plane is formed starting from an anti-$k_t$ clustered jet, which is then reclustered using the Cambridge-Aachen (C/A) algorithm \cite{Atkin:2015msa}. After reclustering, the jet is de-clustered, working backwards through the C/A algorithm following the hardest branch at each splitting, to obtain a list of the branchings from the base of the jet. The variables $\ln(k_t /\text{GeV})$ and $\ln(1/\Delta)$ where
-
-\begin{equation}
-\begin{cases}
-\Delta^2 = (y_a - y_b)^2 + (\phi_a - \phi_b)^2 \\
-k_t = p_{Tb}\Delta 
-\end{cases}
-\label{delta kt}
-\end{equation}
-are plotted for each splitting. Here, $a$ and $b$ refer to the two branches after the splitting, with $p_{Ta} > p_{Tb}$. In the limit $p_{Ta} \gg p_{Tb}$ and $\Delta \ll 1$, $k_t$ refers to the transverse momentum of subjet $b$ with respect to the emitter $a+b$.
-
-The lack of momentum weighting which characterises the C/A algorithm allows for the algorithm to mimic the angular ordering of $1 \rightarrow 2$ splittings in QCD. Anti-$k_t$ jets are not suitable as they are lacking this key angular-ordering which mimics the perturbative evolution of the final state and which allows us, in some sense, to work ``backwards'' through the shower. As each emission is plotted in the Lund Plane, the evolution through the parton shower down to the hadronisation scale emerges, as each QCD emission is found at larger angles and lower $k_t$ than the last.
-
-Figure \ref{LundPlane} shows the various kinematic regions identifiable within the primary LJP. Towards the left edge of the plane, an area characterised by large $\Delta$ initial state radiation is found. A hard-collinear region where the two splittings have roughly equal $p_T$ follows the diagonal edge of the triangle. This edge, in fact, is due to the kinematic limit $k_t < \frac{1}{2}p_{T,jet}\Delta$. In the bottom left corner, there is a region which originates from multiparton interactions and the underlying event, whose emissions within the jet are characterised by a large angle and small $k_t$. A non-perturbative region is found at small $k_t$, and lastly soft-collinear radiation falls towards the centre of the plane.
-
-\begin{figure}[]
-\centering
-\includegraphics[width=0.45\textwidth]{lund_plane}
-\caption{The kinematic regions within the primary Lund Jet Plane \cite{Dreyer:2018nbf}.}
-\label{LundPlane}
-\end{figure}
-
-For the sake of completeness, we would like to mention that a splitting is characterised not just by the ($\Delta, k_t$) coordinates, but also by
-\begin{equation}
-\begin{cases}
- z = \frac{p_{Tb}}{p_{Ta}+p_{Tb}} \\
- m^2 = (p_a + p_b)^2 \\
- \psi = \tan^{-1} \frac{y_b - y_a}{\phi_b - \phi_a}.
-\end{cases}
-\label{z m psi}
-\end{equation}
-There exist also alternative representations of the Lund Plane, where instead of $\ln(k_t/\mathrm{GeV})$, $\ln(1/z)$ is shown. These other Lund coordinates have been used to train graph neural network based taggers, such as LundNet \cite{Dreyer:2020brq}. 
-
-It is also possible to define Lund Planes beyond the primary, by considering further splittings off of the emitted subjets when present. This leads to the definition of secondary planes, tertiary planes, etc. This process is shown in Figure \ref{emissions}.
-
-\begin{figure}
-\centering
-\includegraphics[width=0.7\linewidth]{emissions}
-\caption{The primary Lund Plane for a hypothetical jet with emissions (1) and (3), and the secondary Lund Plane (2) from branch (1) and corresponding tree structure of the jet showing this evolution. Each splitting can be charachterised by the set of Lund variables $\mathcal{T}$, given by Eq. \ref{delta kt} and Eq. \ref{z m psi} \cite{Dreyer:2020brq}.}
-\label{emissions}
-\end{figure}
-
-The Lund Plane has been measured on inclusive jets by the ATLAS, CMS and ALICE collaborations \cite{ATLAS:2020bbn, CMS:2023lpp, ALICE:2021yet}. ATLAS has additionally released measurements for the Lund Plane for top and W jets \cite{ATLAS:2024dua} and a measurement on the Lund subjet multiplicity \cite{ATLAS:2024wrd}.
-
 \subsection{Lund Plane unrolling procedure}
 
 Often, it is easier to work with one-dimensional observables than two-dimensional ones. As the Lund Plane is by definition two-dimensional, an ``unrolling procedure'' is carried out to translate it to a one-dimensional representation. This is useful, for instance, for histogram-based Iterative Bayesian Unfolding, as will be described in the next chapter. 
 
-To unroll the Lund Plane, we plot the number of entries in each bin row-by-row, starting from the bottom-left corner of the plane. This leads to a distinctive falling pattern, representing each row, as shown in Figure BLEUAL. This pattern repeats as one moves up the Lund Plane. As one scans each row, two additional bins must be considered: one, to the left of the block corresponding to the x-underflow in that row, and one to the right corresponding to the x-overflow of that row. Before scanning each row of the Lund Plane, an additional block corresponding to all underflow in y is considered, and, analagously, a final block corresponding to overflow in y is considered after scanning the Lund Plane. These additional y underflow and overflow blocks also contain the additional bins corresponding to underflow and overflow in x. The end result is a one-dimensional plot containing $(N_{x}+2)*(N_{y}+2)$ bins, where $N_{i}$ indicates the number of bins on the x- or y- axis of the original 2-dimensional plot.
+To unroll the Lund Plane, we plot the number of entries in each bin row-by-row, starting from the bottom-left corner of the plane. This leads to a distinctive falling pattern, representing each row, as shown in Figure BLEUAL. This pattern repeats as one moves up the Lund Plane. As one scans each row, two additional bins must be considered: one, to the left of the block corresponding to the x-underflow in that row, and one to the right corresponding to the x-overflow of that row. Before scanning each row of the Lund Plane, an additional block corresponding to all underflow in y is considered, and, analogously, a final block corresponding to overflow in y is considered after scanning the Lund Plane. These additional y underflow and overflow blocks also contain the additional bins corresponding to underflow and overflow in x. The end result is a one-dimensional plot containing $(N_{x}+2)*(N_{y}+2)$ bins, where $N_{i}$ indicates the number of bins on the x- or y- axis of the original 2-dimensional plot.
 
 \todo{Add plot of 2D Lund Plane}
 
@@ -104,51 +48,7 @@ To unroll the Lund Plane, we plot the number of entries in each bin row-by-row, 
 %How Lund Diagrams are useful
 %Discuss Panscales and NLL accurate showers
  
-\subsection{Modified jet angularities}
-\label{angles}
 
-The generalised angularities \cite{Larkoski:2014pca, Proceedings:2018jsb, Gras:2017jty}, henceforth referred to as just \emph{angularities}, are a class of observables designed for quark/gluon jet discrimination. They are defined as 
-
-\begin{equation}
-\lambda^\kappa_\alpha = \sum_i \left(\frac{p_{Ti}}{p_{Tjet}}\right)^\kappa \left(\frac{\Delta R_i}{R_0} \right)^\alpha
-\end{equation} 
-where the sum runs over all constituents of an anti-$k_t$ jet of radius $R_0$, and $\Delta R_i$ indicates the distance between the $i$-th constituent and the jet axis. $\lambda^\kappa_\alpha$ is IR-safe for $\kappa \geq 1$, and we shall assume $\kappa = 1$ going forward, unless otherwise specified.
-
-A few angularities are distinguished enough to have their own name. These include $\lambda_1$, known as the \emph{jet width} and $\lambda_2$, known as the \emph{jet thrust}, amongst others. The idea behind these and other angularities is to emphasise various aspects of a jet's substructure in order to highlight features typical of quark or gluon jets. By tuning the $\beta$ parameter, one can accentuate either wide-angle or collinear radiation, while tuning the $\kappa$ parameter has the same effect on harder or softer hadrons. Ultimately, the difference between quark and gluon jets originates from the fact that $C_A > C_F$, implying that gluons are more likely to emit soft and collinear gluons than quarks.
-
-The phenomenology of such observables has been extensively studied at colliders for processes such as $Z$+jets \cite{Reichelt:2021svh} at the LHC, and they have been measured in proton-proton collisions by the ATLAS, CMS and ALICE collaborations on a variety of energies and final states \cite{ATLAS:2019kwg, CMS:2021vsp, ALICE:2021njq, Dhankher:2024rkv}.
-
-Recently, a proposal for modified angularities has been put forth \cite{Dhani:2024gtx}. 
-
-The variants are defined by reclustering a jet with the C/A algorithm using the winner-takes-all (WTA) scheme. Two vectors are defined:
-\begin{gather}
-n_0 = \left(\cosh y, \cos \phi, \sin \phi, \sinh y \right) \\
-n = \left(\frac{m_{T, n}}{p_{T, n}} \cosh y, \cos \phi, \sin \phi, \frac{m_{T, n}}{p_{T, n}}\sinh y \right)
-\end{gather}
-
-where $\phi$ and $y$ are the azimuthal angle and rapidity of the WTA axis, and $m_{T, n} = p_{T, n} + m_{n}$ is the transverse mass of the particle aligned with the WTA axis. The $(E, p_x, p_y, p_z)$ convention is used to define the vectors.
-
-The variants are then defined as
-
-\begin{align}
-\label{lambdaDot}
-\dot{\lambda}_0^\alpha &= \sum_i \frac{p_{T,i}}{p_T}\left(\frac{2p_i\cdot n_0}{p_{T,i}R^2} \right)^{\frac{\alpha}{2}}  & 
-\dot{\lambda}^\alpha &= \sum_i \frac{p_{T,i}}{p_T}\left(\frac{2p_i\cdot n}{p_{T,i}R^2} \right)^{\frac{\alpha}{2}} \\
-\label{lambdaHat}
-\hat{\lambda}_0^\alpha &= \sum_{i\neq n} \frac{p_{T,i}}{p_T}\left(\frac{2p_i\cdot n_0}{p_{T,i}R^2} \right)^{\frac{\alpha}{2}}  &
-\hat{\lambda}^\alpha &= \sum_{i\neq n} \frac{p_{T,i}}{p_T}\left(\frac{2p_i\cdot n}{p_{T,i}R^2} \right)^{\frac{\alpha}{2}}.
-\end{align}
-
-where the sums in Eqs.~\ref{lambdaHat} excludes the particle aligned with the WTA axis. 
-These variants are specifically designed to bring to light the mass of the particle aligned with the WTA-axis. Considering jets seeded by heavy flavour partons and suppress the decay of the corresponding hadrons, the particle aligned with the WTA axis will be a hadron containing the same flavour of quark which seeded the jet. As such, the observables defined in Eq.~\ref{lambdaDot} will contain an \emph{explicit mass dependence}. In the quasi-collinear limit, for example,
-
-\begin{equation}
-\dot{\lambda}^\alpha_0 \approx \sum_{i \neq n}\frac{p_{T,i}}{p_T}\left(\frac{m_i^2}{p_{T,i}^2R^2} + \frac{\Delta R_i^2}{R^2} \right)^{\frac{\alpha}{2}} + \left(\frac{m_n^2}{p_{T,n}^2R^2} \right)^{\frac{\alpha}{2}}.
-\end{equation}
-
-The end result is a set of observables (Eq.~\ref{lambdaHat}) sensitive to quark mass. 
-
-\textcolor{red}{Show plots from paper??}
 
 \subsection{Other variables of interest}
 \textcolor{red}{Colour ring, D2,boosted kinematic variables, etc.}
@@ -228,7 +128,6 @@ An extensive study was carried out to understand which object to use to reconstr
 
 Crucially, the agreement shown holds when the tracks selected for the measurement are meet basic quality requirements and are matched to the primary vertex, as described in Section bleh. The working points and $p_T$ threshold used in the track selection were optimised to ensure the highest number of matches between emissions at truth and reco level for IBU unfolding \todo{(add plot)}. It is important to note that this does not necessarily ensure that the number of fakes and inefficiencies is minimised, just that, per happenstance, the number of fakes and inefficiencies is such that the total number of emissions in the primary lund plane matches between truth and reco level.
 
-The effect of omitting the neutral component was studied at truth level. In figure BLULUH 
 
 \todo{add plot comparing to pflow and ufo}
 
@@ -313,6 +212,19 @@ In the boosted case, the signed $d_0$ significance distribution for tracks assoc
     \label{boostedMigration}
 \end{figure}
 
+
+%ibu
+%tabella per le selezioni
+%ttbar rej
+%flav fit
+%bkgs
+%systematics
+%correzioni di fede
+%risultati (sys + unfold)
+
+%appendix
+%initial studies on objects for reconstruction
+%omnifold
 
 
 \end{document}

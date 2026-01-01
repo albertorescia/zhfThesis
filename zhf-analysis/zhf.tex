@@ -1,0 +1,630 @@
+\documentclass[10pt,a4paper]{book}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{epigraph}
+\usepackage{makecell}
+\usepackage{multirow}
+\usepackage{afterpage}
+\usepackage{pdflscape}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{everypage}
+\author{Alberto Rescia}
+
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\todo}[1]{{\textcolor{red}{#1}}}
+
+\begin{document}
+
+\chapter[$Z+b\bar{b}$ JSS]{Jet substructure observables in the $Z+b\bar{b}$ final state in the ATLAS experiment}
+\label{ch:z+bb intro}
+The main focus of this thesis is a measurement of the Lund Jet Plane and other substructure observables on $Z+b\bar{b}$ final states. The analysis focuses on boosted and resolved topologies. For comparison, final states containing $Z+jj$, where j indicates a light-flavour jet, are also considered. This chapter will introduce the measurement in detail. First, a motivation for the measurement and description of the observables of interest will be given. Subsequently, a details review of selections, final states, data and simulation samples utilised will be given. 
+
+\section{Motivation}
+
+The main focus of this thesis is the measurement of jet substructure and kinematic observables in $Z+b\bar{b}/jj$ events. $Z$+jets production represents one of the premier tests of QCD, as experimentally it is a readily identifiable final state thanks to the $Z$ boson tag, and each jet produced is a direct result of an emission. This provides the ability to test perturbative QCD in a wide kinematic range. 
+
+Considering $Z$+heavy-flavour jet final states further allows one to probe the structure of the proton and test predictions involving heavy flavour production, whose resummation is especially complicated by the presence of the mass term. $Z+b\bar{b}$ in particular allows one to investigate gluon splittings to heavy quark pairs in intrinsically NNLO final states. This also represents one of the main backgrounds for Higgs measurements which focus on $ZH$ production, as the $H\rightarrow b\bar{b}$ decay channel is the most probable, representing roughly 58\% of the branching ratio~\cite{ParticleDataGroup:2024cfk}.
+
+This measurement aims to study the properties of the internal structure $b$-jets, highlighting in particular the differences when compared to light jets. Currently, little is known about the radiation pattern within these jets, and, in fact, this thesis describes the first ever measurement of $b$-jet substructure at the ATLAS experiment, and the first ever measurement of light jet substructure across a wide $p_t$ range. 
+
+\section{Data and MC samples}
+\label{sec:DataMC}
+This analysis makes use of data recorded with the ATLAS experiment during Run 2, corresponding to the years 2015-2018. The events consist of proton-proton collisions at $\sqrt{s} = $13~TeV during stable beam conditions with all subsystems of the detector operational and passing all data quality requirements. Overall, the data amounts to $140.1$~fb$^{-1}$, with an uncertainty on the integrated luminosity of 0.8\%.
+
+Events analysed are required to pass a given trigger chain. The triggers considered are listed in Table~\ref{tab:triggers}. Events must pass at least one of triggers.
+
+% Requires: \usepackage{booktabs}
+\begin{table}[h]
+    \centering
+    \caption{The triggers used in each channel of the measurement in each year of data taking.}
+    \label{tab:triggers}
+    \begin{tabular}{ll}
+        \toprule
+        \multicolumn{2}{l}{\textbf{Muon channel}} \\
+        \midrule
+        2015        & HLT\_mu20\_iloose\_L1MU15 \\
+                    & HLT\_mu50 \\
+        \midrule
+        2016--2018  & HLT\_mu26\_ivarmedium \\
+                    & HLT\_mu50 \\
+        \midrule
+        \multicolumn{2}{l}{\textbf{Electron channel}} \\
+        \midrule
+        2015        & HLT\_e24\_lhmedium\_L1EM20VH \\
+                    & HLT\_e60\_lhmedium \\
+                    & HLT\_e120\_lhloose \\
+        \midrule
+        2016--2018  & HLT\_e26\_lhtight\_nod0\_ivarloose \\
+                    & HLT\_e60\_lhmedium\_nod0 \\
+                    & HLT\_e140\_lhloose\_nod0 \\
+                    & HLT\_e300\_etcut \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+Signal and background processes are simulated us MC event generators. Specifically, $Z$+jets MEs with $b$, $c$, and light jet filters are simulated at NLO with \code{MadGraph5\_aMC@NLO} v2.6.5 with FxFx merging~\cite{Alwall:2014hca, Frederix:2012ps}. The ME is calculated in the 5FS, and explicitly includes the production of up to three partons. Generation is carried out with the NNPDF3.1$_\text{LUX}$QED~\cite{Catani:2001cc} PDF set with $\alpha_s = 0.118$. The $Z$ boson is required to decay to charged leptons, and the invariant mass of the dilepton system is forced to be greater than 40~GeV. Jets are generated with a $p_t > 10$~GeV. Events are then showered with \code{Pythia8} v8.245~\cite{Sjostrand:2014zea} with the A14 tune~\cite{ATLAS:2014rfk} and the NNPDF 2.3 LO PDF set with $\alpha_s = 0.130$~\cite{Ball:2012cx}.
+
+The backgrounds consist of those processes which can lead to an identical final state. These include $t\bar{t}$ and single-top production, $Z(\tau^+\tau^-)$+jets, $VH$ production, and $VV$ production.
+
+The $t\bar{t}$ background is simulated using \code{PowhegBox} v2 at NLO and the NNPDF 3.0 NNLO PDF set~\cite{Frixione:2007nw, Nason:2004rx, Frixione:2007vw}. The $h_\text{damp}$ parameter - a damping factor regulating the matching of the ME to the parton shower and, consequently, the recoil of the $t\bar{t}$ system against high-$p_t$ radiation - is set to $1.5\times$ the top mass~\cite{ATLAS:2016xpx}. The sample is powered in \code{Pythia8} v8.230 with the A14 tune and the NNPDF 2.3 LO PDF set. The sample is normalised to the NNLO cross-section calculation with next-to-leading-logarithmic (NNLL) ressummation of soft gluon terms, as calculated with \code{Top++}2.0~\cite{Czakon:2011xx, ATLAS:2016xpx}.
+
+Single-top production, either in association with a $W$ boson, or in the $s$- and $t$-channels, is also calculated at NLO with  \code{PowhegBox} v2 and showered with \code{Pythia8} with the NNPDF 2.3 LO PDF set. Diagrams overlapping with the $t\bar{t}$ production are removed~\cite{Frixione:2008yi}.
+
+\code{PowhegBox} and \code{Pythia8} with the NNPDF 3.0 NNLO PDF set were also use to simulate and shower the production of the Higgs boson in association with vector bosons ($VH$ production).
+
+Semileptonic diboson $VV$ final states, where one of the vector decays hadronically and the other leptonically, are simulated with \code{Sherpa} v2.2.1~\cite{Sherpa:2019gpd} with NLO ME for one parton emissions, and LO ME for up to three parton emissions. The NNPDF 3.0 NNLO PDF set was used in this calculation. The MEs are then showered with \code{Sherpa} 2.2.11 with the MEPS@NLO prescription~\cite{Catani:2001cc, Hoeche:2011fd, Hoeche:2012yf, Hoeche:2009rj}. 
+
+Finally, $Z(\tau^+\tau^-)$+jets samples are generated in the same way as signal samples. 
+
+\todo{Include summary table?}
+
+In all samples, the effect of pile-up is accounted for by overlaying simulated minimum-bias events. In particular, single-, double-, and non-diffractive proton-proton processes are simulated in \code{Pythia8} v8.186 with the A3 tune~\cite{ATLAS:2016puo} and and the NNPDF 2.3 LO PDF set.
+
+All MC samples are processed in a simulation of the ATLAS detector based on GEANT~\cite{GEANT4:2002zbu, ATLAS:2010arf}. The resulting physics objects are reconstructed using the same algorithms used for data.
+
+\section{Event selection}
+
+This measurement considers $Z+b\bar{b}$ and $Z+jj$ final states in both resolved and boosted topologies, making for a total of four signal regions (SRs): \emph{Resolved 2B, Resolved 0B, Boosted 2B,} and \emph{Boosted 0B}. This section is dedicated to the selections applied in the four regions. 
+
+\paragraph{Lepton selections} Lepton selections are in common to all signal regions. Events must contain two same-flavour, opposite-sign (SFOS) leptons. Each individual lepton must have a $p_t > 27$~GeV due to trigger thresholds, while the mass of the dilepton pair must be found to be compatible with that of the $Z$ boson, namely in the range 76-106~GeV. 
+
+The remaining selections focus on jets and their natures depends on the signal region considered.
+
+\paragraph{Resolved SRs} In the Resolved SRs, anti-$k_t$ jets of radius $R=0.4$ clustered with PFlow objects are considered. Jets must have a $p_t > 20$~GeV and be found in the central region, within rapidity $\vert y \vert < 2.5$. Events in the Resolved 2B SR must contain at least 2 $b$-jets, tagged with the DL1r algorithm with the 70\% working point. If a greater number of jets satisfy this criterion, the two leading jets are considered. In the Resolved 0B SR, events must contain at least 2 \emph{anti-}b-tagged jets, still identified with the DL1r algorithm with the 70\% working point. The two SRs are thus completely orthogonal to each other. 
+
+An overlap removal procedure is applied to ensure that leptons and jets are uniquely identified. Preselected jets found to be within $\Delta R < 0.2$ are removed as they are likely to be misidentified leptons. In a second step, leptons found within $\Delta R < 0.4$ of jets which pass the full selections are removed.
+
+\paragraph{Boosted SRs} The Boosted SRs must contain at least one \code{AntiKt10LCTopoTrimmedPtFrac5SmallR20Jet}. This is a jet collection of radius $R = 1.0$ produced using LCTopo objects. The jets are trimmed with parameters $R_\text{sub} = 0.2$ and $f_\text{cut} = 0.05$, as described in Section~\ref{sec:ATLASJets}. Jets are required to have $p_t > 200$~GeV and to be found in the central region, with $\vert y \vert < 2.0$. These will be referred to as large-R jets through the rest of this chapter. 
+
+Large-R jets are tagged through the use of VR trackjets. Events with at least two VR trackjets with $p_t > 10$~GeV and $\vert y \vert < 2.5$. VR trackjets are associated to large-R jets through a geometric matching criterion. In order to be considered associated, a VR trackjet must be within a distance of $\Delta R < 1.0$ from the large-R jet in the rapidity-azimuth plane. 
+
+A large-R jet is considered double-$b$-tagged (and thus belonging to the Boosted 2B region) if at least two $b$-tagged VR trackjets are associated to it. VR trackjets are tagged with the DL1r algorithm with the 70\% working point. Likewise, large-R jets in the Boosted 0B SR must have at least two anti-$b$-tagged VR trackjets associated to it. The highest $p_t$ double-tagged large-R jet is considered for further analysis. 
+
+An analogous overlap removal procedure as in the Resolved SRs is applied. In this case, however, the radius in the second OR step is increased to $1.0$ to match the large-R jet radius. 
+
+Unlike the 2B and 0B SRs, the Resolved and Boosted SRs are not orthogonal; it is possible for a given event to pass both selections.
+
+Table~\ref{tab:recoSels} outlines the selections in all SRs.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+\afterpage{
+\begin{landscape}
+\begin{table}[]
+\begin{tabular}{|c|cc|}
+\label{tab:recoSels} 
+                         & \multicolumn{1}{c|}{\large{\textbf{2B}}}              & \textbf{\textbf{0B}}      \\ \hline
+\multirow{2}{*}{\large{\textbf{Resolved}}} & \multicolumn{2}{c|}{\makecell{2 SFOS leptons $\ell^+\ell^-$ \\
+                                                $p_t^\ell > 27$~GeV, $76 < m_{\ell\ell}/\text{GeV} < 106$}}         \\ \cline{2-3} 
+                          & \multicolumn{1}{c|}{\makecell{$\geq2$ anti-$k_t$ $R = 0.4$ PFlow jets\\
+                                                $p_t^{\text{jet}} > 20$~GeV,
+                                                 $\vert y_\text{jet}\vert < 2.5$\\
+                                                $\geq 2$ $b$-tagged jets with DL1r$_\text{\footnotesize{PFlow}}$ 70\% WP}}   
+                                                & \makecell{$\geq 2$ anti-$k_t$ $R = 0.4$ PFlow jets\\
+                                                $p_t^{\text{jet}} > 20$~GeV, $\vert y_\text{jet}\vert < 2.5$\\
+                                                Exactly 0 $b$-tagged with DL1r$_\text{\footnotesize{PFlow}}$ 70\% WP}   \\ \hline \hline
+\multirow{2}{*}{\large{\textbf{Boosted}}}  & \multicolumn{2}{c|}
+                                        {\makecell{2 SFOS leptons $\ell^+\ell^-$ \\
+                                                $p_t^\ell > 27$~GeV, $76 < m_{\ell\ell}/\text{GeV} < 106$\\
+                                                $\geq 1$ $R = 1.0$ LCTopo jet \\
+                                                $p_t^{\text{jet}} > 200$~GeV, $\vert y_\text{jet}\vert < 2.0$}} \\ \cline{2-3} 
+                          & \multicolumn{1}{c|}{\makecell{$\geq 2$ VR Trackjets matched to large-R jet\\
+                                                    $p_t^\text{VR} > 10$~GeV, $\vert y_\text{VR} \vert < 2.5$\\
+                                                    $\geq 2$ $b$-tagged jets with DL1r$_\text{\footnotesize{VR}}$ 70\% WP}}      
+                                                    & \makecell{$\geq 2$ VR Trackjets matched to large-R jet\\
+                                                    $p_t^\text{VR} > 10$~GeV, $\vert y_\text{VR} \vert < 2.5$\\
+                                                    0 $b$-tagged jets with DL1r$_\text{\footnotesize{VR}}$ 70\% WP}      \\ \hline
+\end{tabular}
+\caption{An overview of the event selections applied in each of the four signal regions.}
+\end{table}
+\end{landscape}
+}
+
+\subsection{Fiducial Selections}
+
+To form the response matrix when unfolding, analogous event selections at particle level must be made. Electrons and muons are selected identically to their detector level selections.
+
+In the Resolved SRs, the \code{AntiKt4TruthDressedWZJets} collection is used. These contain jets clustered using stable, visible truth particles within $\vert \eta \vert < 5.0$. All particles are considered with the exception of:
+\begin{itemize}
+    \item Prompt leptons from $W$, $Z$, or top decays
+    \item Prompt neutrinos produced in the ME\footnote{Neutrinos from other sources, such as muon or hadron decays, are considered.}
+    \item Prompt photons from $H\rightarrow \gamma\gamma$ decays
+    \item Photons not from hadron decays found to be within a cone of $\Delta R < 0.1$ any charged leptons. These are dressing photons originating from final state radiation off the leptons.
+\end{itemize}
+
+Jets are then labelled as $b$-jets if a $b$-hadron with $p_t > 5$~GeV is found within a distance of $\Delta R < 0.3$ of the jet axis. Jets are labelled as light jets if no $b$- or $c$-hadrons above the $p_t$ threshold are associated to it.
+
+In the Boosted SRs, the \code{AntiKt10TruthTrimmedPtFrac5SmallR20Jets}. These are formed with all visible, stable particles with the exception of muons and are trimmed with the same parameters as in the detector-level case. A large-R jet passes the fiducial Boosted 2B selection if at least two $b$-hadrons with $p_t > 5$~GeV are ghost matched to the jet. A large-R jet passes the fiducial Boosted 0B selection if no $b$-hadrons or $c$-hadrons are ghost matched.
+
+\section{Observables of interest}
+
+As shown in Section~\ref{sec:V+jets}, kinematic observables for $Z$+jets have been measured several times by multiple experiments. In particular, an ATLAS measurement from 2024 already focuses on the differential cross section of kinematic observables such as the $p_t$ and dijet mass using an event selection which exactly matches our Resolved 2B final state~\cite{ATLAS:2024tnr}. Similarly, a another ATLAS measurement using partial Run 2 data observes a final state similar to our Boosted 2B SR~\cite{ATLAS:2022uav}. 
+
+For this reason, this measurement focuses particularly on jet substructure observables, such as the Lund Jet Plane. The emphasis on jet substructure for heavy flavour jets and for low-$p_t$ light jets is novel in ATLAS. This also represents the first time that the Lund Jet Plane for large-R jets in a final state enriched by gluon splittings\footnote{The ATLAS Collaboration has already measured the Lund Jet Plane for large-R jets from top and $W$ bosons.}
+
+Some kinematic variables, however, are still measured. This is done to update previous measurements, such that cited in Reference~\cite{ATLAS:2022uav}, to the full Run 2 dataset, but also to include novel observables which were not previously included.
+
+We specify all observables measured by the signal regions in which they are measured below:
+
+\paragraph{\textbf{Resolved 2B:}}
+\begin{itemize}
+    \item Transverse momentum of the leading $b$-jet pair, $p_{t, bb}$;
+    \item Ratio of the transverse momentum of the leading $b$-jet pair over their invariant mass, $p_{t,bb}/m_{bb}$;
+    \item Angular distance between the two leading $b$-jets $\Delta R_{bb}$;
+    \item The jet width $\lambda^1_1$ (hereby denoted as $\lambda)$ for the leading $b$-jet;
+    \item The two-dimensional primary Lund Jet Plane of the leading and subleading $b$-jets.
+\end{itemize}
+
+\paragraph{\textbf{Resolved 0B:}}
+\begin{itemize}
+    \item Transverse momentum of the leading jet pair, $p_{t, jj}$;
+    \item Ratio of the transverse momentum of the leading jet pair over their invariant mass, $p_{t,jj}/m_{jj}$;
+    \item Angular distance between the two leading jets $\Delta R_{jj}$;
+    \item The jet width $\lambda^1_1$ (hereby denoted as $\lambda)$ for the leading jet;
+    \item The two-dimensional primary Lund Jet Plane of the leading jet.
+\end{itemize}
+
+\paragraph{\textbf{Boosted 2B:}}
+\begin{itemize}
+    \item Transverse momentum of the large-R jet $p_{t, \text{large-R}}$;
+    \item Mass of the large-R jet $m_{\text{large-R}}$;
+    \item Angular distance between the two $b$-hadrons reconstructed as subjets within the large-R jet $\Delta R_{bb,\text{large-R}}$;
+    \item The two-dimensional primary Lund Jet plane of the large-R jet.
+\end{itemize}
+
+\paragraph{\textbf{Boosted 0B:}}
+\begin{itemize}
+    \item Transverse momentum of the large-R jet $p_{t, \text{large-R}}$;
+    \item Mass of the large-R jet $m_{\text{large-R}}$;
+    \item The two-dimensional primary Lund Jet plane of the large-R jet.
+\end{itemize}
+
+For all distributions considered, the data in the dielectron and dimuon channels are summed after background subtraction. Unfolding is then carried out using the Iterative Bayesain Unfolding (IBU) procedure.
+
+The Lund Plane distributions in the Resolved 2B and 0B signal regions are further divided into jet $p_t$ slices. Three such slices are considered, between 20-60~GeV, 60-100~GeV and above 100~GeV. When considering these three regions, no distinction between leading and subleading jet is made.
+
+\section{Reconstruction of JSS observables}
+
+Due to the higher resolution of the ATLAS Inner Detector, the Lund Jet Plane and jet angularities are reconstructed from tracks. An initial selection of tracks is made from those satisfying the requirements described in \ref{sec:trackSels}. 
+
+The JSS observables are formed by matching tracks to jets. The matching criterion is a geometric, requiring that a track be found within a distance equal to the jet radius in the $y-\phi$ plane. After matching, tracks to each jet are clustered into an anti-$k_t$ jet of the same radius as the input jet in consideration. The Lund Jet Plane or jet angularities are then calculated according to their definitions.
+
+Tracks with $p_t > 900$~MeV satisfying the Loose Track Quality and Loose Track-to-Vertex Association working points are considered. The $p_t$ threshold originates from a study aimed at reducing the number of fake/pile-up tracks\cite{ATLAS:2022hro}, whereas the working points were optimised to ensure the highest number of matches between emissions at particle and detector level for unfolding. It is important to note that this does not necessarily ensure that the number of fakes and inefficiencies is minimised, just that, per happenstance, the number of fakes and inefficiencies is such that the total number of emissions in the primary Lund Plane matches between particle and detector level. The scan of different working points for a fixed track $p_t$ threshold of 900~MeV is shown in Figure~\ref{fig:trkWPScan}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.85\linewidth]{zhf-analysis/trkWPScan.pdf}
+    \caption{The determination of the frequency with which the primary Lund Plane for jets at particle and detector level have the same number of emissions as a function of Track Selection (TS) and Track-to-Vertex Association (VA) working points. The value of 0 indicates that the two Lund Planes have a different number of emissions, while the value of 1 indicates that they have the same value. The evaluation is made for track with $p_t > 900$~MeV.}
+    \label{fig:trkWPScan}
+\end{figure}
+
+\subsection{B hadron reconstruction}
+
+To be able to accurately study the substructure of heavy flavour jets, one must solve the problem of the heavy flavour hadron decay products. A quark in the final state will radiate gluons, with each subsequent gluon being emitted at a smaller angle in accordance with the DGLAP equations. The radiation may in turn emit more radiation, leading to the tree-like structure we call a jet. This structure is mostly preserved after hadronisation.
+
+Heavy flavour hadrons, however, will decay into light hadrons via the weak interaction. To a jet clustering algorithm, the decay products will rightly appear as just another emission as there is no way to distinguish one from the other in data. To get around this issue, theorists will often publish predictions for processes at either parton level or artificially inhibit the decay of the heavy flavour hadron if at hadron level. This is shown in Figure asldkfjd, where the particle-level Lund Jet Plane defined and without the $b$-hadron decay inhibited is shown for $b$-jets between 60-100~GeV. It is clear how the presence of the decay products leads to an excess of emissions in the small-angle region.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.495\linewidth]{zhf-analysis/LPBHadReco/LP2D_truth_g60l100_BHadReco.pdf}
+    \includegraphics[width=0.495\linewidth]{zhf-analysis/LPBHadReco/LP2D_truth_g60l100_noBHadReco.pdf}
+
+    \caption{The particle-level $b$-jet Lund Jet Plane defined with and without the decay products of the $b$-hadron.}
+    \label{fig:placeholder}
+\end{figure}
+In this measurement, we opt to reconstruct the heavy flavour hadron from it's charged decay products, similar to the strategy adopted by the CMS collaboration in \cite{CMS:2024gds}. Here, the charged momentum of the heavy flavour hadron is reconstructed via tracks identified as coming from the decay by a Boosted Decision Tree trained for this task. We, on the other hand, adopt a cut-based approach. 
+
+The $b$-hadron is reconstructed through a cut on the track signed impact parameter significance $s_{d_0}$. 
+
+In Fig. \ref{pflowD0} the $s_{d_0}$ distribution for tracks associated to PFlow jets in our selection tagged as $b$-jets or light jets is shown. From here, it is clear that the observable chosen has discrimination potential.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{analysis-chapter/pflowD0.png}
+    \caption{The distribution of the signed $d_0$ significance for tracks in PFlow jets tagged as $b$-jets (black) and the same distribution for tracks associated in PFlow jets tagged as light jets (blue).}
+    \label{pflowD0}
+\end{figure}
+
+To reconstruct the $b$-hadron from its charged decay products, a detailed study was undertaken to optimise the track selection. The reconstructed $b$-hadron four-momentum was optimised against the particle-level $b$-hadron partially reconstructed from only its charged decay products. 
+
+It was found that tracks satisfying the requirement $s_{d_0} > 0.5$ or $s_{d_0} < -4$ best reproduced the particle-level charged four-momentum of the $b$-hadron. In cases in which no track in a $b$-jet is found to satisfy these requirements, the leading track is assumed to originate from the decay, in accordance with the leading particle effect. In this way, no additional requirement beyond $b$-tagging is placed on the jets whose substructure we analyse. Figure \ref{fig:chargedMigration} shows the migration of the charged $b$-hadron momentum from particle level to detector level using tracks satisfying these selections.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.85\linewidth]{analysis-chapter/pflowMig_pt.png}
+    \includegraphics[width=0.85\linewidth]{analysis-chapter/pflowMig_y.png}
+    \includegraphics[width=0.85\linewidth]{analysis-chapter/pflowMig_phi.png}
+    \caption{The reconstructed B Hadron $p_t$, $y$, and $phi$ vs.\ that obtained via the sum of the charged decay products of the $b$-hadron at truth level.}
+    \label{fig:chargedMigration}
+\end{figure}
+
+Figure~\ref{fig:totMigration}, on the other hand, shows the migration of the reconstructed B Hadron four-momentum when compared against the full, undecayed truth B Hadron, rather than just the component obtained from the charged decay products. From here, it is clear that, although the $p_T$ of the reconstructed B Hadron tends to underestimate that of the undecayed truth B Hadron, the $y$ and $\phi$ distributions do not change much.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.9\linewidth]{analysis-chapter/pflowMig_tot_pt.png}
+    \includegraphics[width=0.9\linewidth]{analysis-chapter/pflowMig_tot_y.png}
+    \includegraphics[width=0.9\linewidth]{analysis-chapter/pflowMig_tot_phi.png}
+    \caption{The reconstructed $b$-hadron $p_t$, $y$, and $phi$ vs.\ that of the undecayed particle-level $b$-hadron.}
+    \label{fig:totMigration}
+\end{figure}
+
+Up to now, the discussion of $b$-hadron reconstruction has been focused on tracks associated to PFlow jets. Although there is no reason to expect why this should not hold true for tracks associated to boosted jets, the effectiveness of the reconstruction was also checked in this case.
+
+In the Boosted 2B SR, the $s_{d_0}$ distribution for tracks associated to VR trackjets tagged as $b$-jets is studied. Figure \ref{fig:d0Boost} shows the distribution of this variable for tracks associated to $b$-jets in the Boosted 2B SR vs.\ the same distribution in the Resolved 2B SR. No significant difference is observed. For this reason, the same track selections are implemented in the Boosted 2B SR.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.9\linewidth]{analysis-chapter/d0Boosted.png}
+    \caption{The $s_{d_0}$ for tracks associated to PFlow jets tagged as $b$-jets and to VR trackjets tagged as $b$-jets (blue).}
+    \label{fig:d0Boost}
+\end{figure}
+
+\subsection{Unfolding the Lund Jet Plane}
+
+To unfold the Lund Jet Plane with IBU, an ``un-rolling'' procedure is implemented. This procedure calls for the assignment of a unique number to each bin in the two-dimensional histogram of the Lund Plane, including overflow and underflow bins. The data are then plotted in a one-dimensional histogram, where on the abscissa the bin number is indicated. 
+
+Bins are numbered sequentially row-by-row, from the bottom to the top of the two-dimensional histogram. Two additional bins are added to each row to account for underflow and overflow values of $\log(R/\Delta R)$. These are added to the left and right of each row, respectively. Likewise, two additional rows are added to the one-dimensional mapping to account for the underflow and overflow in $\log(k_t/\text{GeV})$, the former at the bottom of the Lund Plane and the latter at the top. Overall, if the two-dimensional primary Lund Plane is defined with $N_x$ and $N_y$ bins on the $x$- and $y$-axis, the one-dimensional variant contains $(N_x+2)\times(N_y+2)$ total bins. An example is shown in Figure~\ref{fig:lp1d_example}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.75\linewidth]{zhf-analysis/lp1d_leadingJet.pdf}
+    \caption{An example of the output of the Lund Plane unrolling procedure of simulated leading jets between 60-100~GeV passing the Resolved 0B selections. The characteristic rise and fall seen is a result of the scan across rows of the two dimensional Lund Plane. The area under the curve is normalised to unity.}
+    %plot made with mc16e leading light jets
+    \label{fig:lp1d_example}
+\end{figure}
+
+At detector level, the measurement of the Lund Jet Plane is limited to charged particles due to the higher resolution of the tracker. However, the pattern of emissions in the primary Lund Plane is roughly independent of charge, as it is a consequence of QCD\footnote{This is not strictly true in the entire Lund Tree, as the difference in particle multiplicity between the definition of the Lund Plane with and without the neutral component of the jet leads to additional branchings in further planes beyond the primary.} The fiducial definition of the primary Lund Plane for the purpose of unfolding this data thus includes neutral particles. All particles in the fiducial definition must satisfy the 900~MeV cut in transverse momentum, as a variation in this cut would lead to differences in particle multiplicity which \emph{can} affect the structure of the primary plane.
+
+Figure~\ref{fig:lpChargedCmp} shows how the inclusion of the neutral particles in the fiducial definition of the Lund Plane does not significantly alter it. The greatest variation can be seen in the small-angle region and is due to differences in particle multiplicity, though the overall shape and structure of the plane is similar.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.48\linewidth]{zhf-analysis/LPChargedPlots/ZFxFx_2D_leadingJet_neutral.pdf}
+    \includegraphics[width=0.48\linewidth]{zhf-analysis/LPChargedPlots/ZFxFx_2D_leadingJet_charged.pdf}\\
+    \includegraphics[clip, trim=5cm 5cm 5cm 5cm, width=0.8\linewidth]{zhf-analysis/LPChargedPlots/LPComparison_v2.pdf}
+
+    \caption{The particle-level leading jet Lund Plane satisfying the fiducial selection in the Resolved 0B signal region with $p_t$ between 60-100~GeV. The Lund planes shown are defined with particles with $p_t > 900$~MeV, though the inclusion of neutral particles varies. }
+    \label{fig:lpChargedCmp}
+\end{figure}
+
+\section{Backgrounds}
+
+In Section~\ref{sec:DataMC}, we provide a list of the backgrounds which contribute to the the various signal regions. Most of these, particularly $VH$, $VV$, single-top, and $Z(\tau^+\tau^-)$+jets are small and can estimated directly from MC. The most significant backgrounds are instead $t\bar{t}$ and $Z$+jets with mistagged jets. These must be addressed with more sophisticated techniques. In the case of the $t\bar{t}$ background, we designed an ad-hoc neural network to reject this background. The remaining $t\bar{t}$ background is then estimated with data-driven methods. These are described in Sections~\ref{sec:ttbarRej} and \ref{sec:ttbarDD}, respectively.
+
+To combat the $Z$+jets background, a dedicated flavour fit on a flavour-sensitive observable, namely the DL1r score, is carried out. The aim of this fit is to constrain the shape and normalisation of each observable measured. In Section~\ref{sec:FlavFit}, we describe this fit.
+
+Lastly, in Section~\ref{sec:BkgEstimate}, we provide the final estimate of all background processes to each SR.
+
+\subsection{ttbar rejection}
+\label{sec:ttbarRej}
+
+To suppress the large $t\bar{t}$ background, a dedicated dense neural network (NN)  was trained to differentiate $Z$+jets events from $t\bar{t}$ events. The NN is trained on pre-tagged jets, but is applied exclusively in the Resolved 2B SR. 
+
+The NN takes in input a variety of kinematic variables related to the jets, leptons, $E_T^\text{miss}$, etc. A full list of the input variables is provided in Table~\ref{tab:NNVar}. Details on the NN architecture, written in the Keras~\cite{chollet2015keras} library, is provided in Table~\ref{tab:NNArch}. \todo{Quali sono gli iperparametri??}
+
+
+\begin{table}
+    \centering
+    \begin{tabular}{c|c}
+        \hline
+        Variable & Description\\
+        \hline
+         $p_t^{\text{jet}_0}$ & Leading jet $p_t$ \\
+         $p_t^{\text{jet}_1}$ & Subleading jet $p_t$ \\
+         $p_t^{jj}$ & Dijet $p_t$ \\
+         $m_{jj}$ & Dijet mass \\
+         $\Delta R(j^0, j^1)$ & Distance between jets \\
+         $\ell^0$ $p_t$ & Leading lepton $p_t$ \\
+         $\ell^1$ $p_t$ &  Subleading lepton $p_t$ \\
+         $p_t^{\ell\ell}$ & Dilepton $p_t$ \\
+         $p_z^{\ell\ell}$ & Dilepton momentum along the $z$-axis \\ 
+         $m_{\ell\ell}$ & Dilepton mass \\
+         $\Delta R(\ell^0, \ell^1)$ & Distance between leptons \\
+         $p_t^\text{miss}$ & Missing transverse momentum \\
+         $p_t^\text{vis}$ & $p_t$ of the $(j^0, j^1, \ell^0, \ell^1)$ system\\
+         $p_z^\text{vis}$ & \makecell{Momentum along the $z$-axis\\ of the $(j^0, j^1, \ell^0, \ell^1)$ system}\\
+         $m_\text{vis}$ & Mass of the $(j^0, j^1, \ell^0, \ell^1)$ system\\
+         $m_{t,\text{vis}}$ & \makecell{Transverse mass\\ of the $(j^0, j^1, \ell^0, \ell^1)$ system}\\
+         $p_t^\text{soft}$ & $p_t^\text{miss} - p_t^\text{vis}$\\
+         $m_{j^0\ell^0}$ & Mass of the $(j^0,\ell^0)$ system\\
+         $m_{j^1\ell^1}$ & Mass of the $(j^1,\ell^1)$ system\\
+         $h_t$ & Scalar sum of $p_t$ of all particles \\
+         $\Delta \phi(p_t^\text{miss}, j^0)$ & \makecell{Angular distance of missing\\  transverse momentum and $j^0$}\\
+        $\Delta \phi(p_t^\text{miss}, j^1)$ & \makecell{Angular distance of missing\\  transverse momentum and $j^1$}\\
+        $\Delta \phi(p_t^\text{miss}, \ell^0)$ & \makecell{Angular distance of missing\\  transverse momentum and $\ell^0$}\\
+        $\Delta \phi(p_t^\text{miss}, \ell^1)$ & \makecell{Angular distance of missing\\ transverse momentum and $\ell^1$}\\
+        $\Delta \phi(p_t^\text{miss}, j^0+j^1)$ & \makecell{Angular distance of missing transverse\\ momentum and the dijet system}\\
+        $\Delta \phi(p_t^\text{miss}, \ell^0+\ell^1)$ & \makecell{Angular distance of missing transverse\\ momentum and the dilepton system}\\
+    \end{tabular}
+    \caption{The input variables of the dense neural network trained for the $t\bar{t}$ background rejection.}
+    \label{tab:NNVar}
+\end{table}
+
+\begin{table}
+    \centering
+    \begin{tabular}{c|c|c}
+        \hline
+        Layer & No. of Nodes & \makecell{Activation\\function} \\
+        \hline
+         1 & 40 & ReLU\\
+         2 & 50 & ReLU\\
+         3 & 20 & ReLU\\
+         4 & 1 & sigmoid\\
+    \end{tabular}
+    \caption{The architecture of the dense neural network trained for the $t\bar{t}$ background rejection.}
+    \label{tab:NNArch}
+\end{table}
+
+Figure~\ref{fig:ttbarNNVar} shows the discrimination potential of a selection of input variables -- namely the dijet transverse momentum $p_t^{jj}$, missing transverse momentum $p_t^{\text{miss}}$, dilepton mass $m_{\ell\ell}$ around the $Z$ boson peak, and angular distance between the leptons $\Delta R(\ell^0, \ell^1)$ -- for the $Z+b\bar{b}$ signal and $t\bar{t}$ background. Also shown is the combined signal+background distribution, its mean value, and the root mean squared (RMS). The signal/background discrimination potential of these observables, especially the dilepton mass, is evident. 
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.48\linewidth]{zhf-analysis/ttbarNNPlots/pt_jj.pdf}
+    \includegraphics[width=0.48\linewidth]{zhf-analysis/ttbarNNPlots/met_pt.pdf}\\
+    \includegraphics[width=0.48\linewidth]{zhf-analysis/ttbarNNPlots/lep_inv_mass-1.pdf}
+    \includegraphics[width=0.48\linewidth]{zhf-analysis/ttbarNNPlots/dR_ll.pdf}
+    \caption{The signal and background distributions for the $p_t^{jj}$, $p_t^\text{miss}$, $m_{\ell\ell}$, and $\Delta R(\ell^0, \ell^1)$ variables used to train the neural network.}
+    \label{fig:ttbarNNVar}
+\end{figure}
+
+Figure~\ref{fig:ttbarEff} shows the normalised output of the NN evaluated on $t\bar{t}$ and $Z+b\bar{b}$ events and the relative cumulative integrals (rejections). Additionally, the Receiver Operator Characteristic (ROC) curve showing the background rejection vs.\ signal efficiency is shown.
+
+Table~\ref{tab:ttbarRejValues} shows the scores and rejections for a selection of working points considered. The final score used to cut on the NN output is 0.490, corresponding to an 85\% working point and a 85\% rejection of the $t\bar{t}$ background.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.95\linewidth]{zhf-analysis/ttbarEffPlots/zbb_NNRej.pdf}\\
+    \includegraphics[width=0.95\linewidth]{zhf-analysis/ttbarEffPlots/ttbar_NNRej.pdf}\\
+    \includegraphics[width=0.6\linewidth]{zhf-analysis/ttbarEffPlots/ROC.pdf}\\
+    
+    \caption{The NN output scores for the $Z+b\bar{b}$ signal (top left) and $t\bar{t}$ background (centre left), with their relative integrals (top right and centre right). The ROC curve is shown in the bottom row.}
+    \label{fig:ttbarEff}
+\end{figure}
+
+
+\begin{table}
+    \centering
+    \begin{tabular}{c|c|c}
+       \makecell{Signal\\ Efficiency}  & \makecell{Background \\Rejection}  & \makecell{Output \\ Score}\\
+       \hline
+        98.3\% & 46.6\% & 0.01\\
+        96.6\% & 58.8\% & 0.05\\
+        94.8\% & 66.7\% & 0.11\\
+        90.0\% & 78.6\% & 0.31\\
+        85.3\% & 84.7\% & 0.49\\
+    \end{tabular}
+    \caption{A selection of signal efficiency working points for the NN designed for $t\bar{t}$ rejection and their relative background rejections and output scores.}
+    \label{tab:ttbarRejValues}
+\end{table}
+
+\subsection{$t\bar{t}$ data-driven estimation}
+\label{sec:ttbarDD}
+
+As the $t\bar{t}$ background is highly sensitive to modelling uncertainties in the MC, a data-driven estimation is carried out. To this aim, a $t\bar{t}$ enriched control region (CR) is defined by requiring an opposite-sign electron and muon pair in the selections. 
+
+First, the backgrounds to the $t\bar{t}$ selection are subtracted from the CR region in the data sample. These are estimated from simulation. The result is an expectation of the number of $t\bar{t}$ events in data which pass the CR selections.
+
+Transfer factors are then derived for each observable. These are obtained from simulation, and correspond to the ratio of each observable in the SR to that in the CR. The transfer factors are then used to multiply the background-subtracted CR distributions in data, mapping the $t\bar{t}$ estimation to the SR.
+
+The transfer factors from the di-electron and di-muon channels for a selection of observables from each signal region considered are shown in Figures~\ref{fig:TF_Geq2BiJ, fig:TF_Eq0BiJ, fig:TF_Geq2BFatJ, fig:TF_Eq0BFatJ}. Transfer factors from the di-muon channel are generally greater than those from the di-electron channel. 
+
+\todo{Sono troppi TF plot? Quali togliere?}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/TFPlots/Geq2BiJ/leadBJet_Pt_Geq2BiJ.pdf}
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/TFPlots/Geq2BiJ/dibjet_pt_Geq2BiJ.pdf} \\
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/TFPlots/Geq2BiJ/dibjet_m_Geq2BiJ.pdf}
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/TFPlots/Geq2BiJ/dibjet_m_Geq2BiJ.pdf}
+    \caption{The transfer factors for the di-electron and di-muon channels for the leading $b$-jet $p_t$, di-$b$-jet $p_t$, di-$b$-jet mass, and $b$-jet angular distance in the Resolved 2B signal region.}
+    \label{fig:TF_Geq2BiJ}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/TFPlots/Eq0BiJ/leadJet_Pt_Eq0BiJ.pdf}
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/TFPlots/Eq0BiJ/dijet_pt_Eq0BiJ.pdf}\\
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/TFPlots/Eq0BiJ/dijet_m_Eq0BiJ.pdf}
+    \caption{The transfer factors for the di-electron and di-muon channels for the leading jet $p_t$, di-jet $p_t$, and di-jet mass in the Resolved 0B signal region.}    
+    \label{fig:TF_Eq0BiJ}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/TFPlots/Geq2BFatJ/leadBJet_Pt_Geq2BFatJ.pdf}
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/TFPlots/Geq2BFatJ/dibjet_m_Geq2BFatJ.pdf}\\
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/TFPlots/Geq2BFatJ/dr_Geq2BFatJ.pdf}
+    \caption{The transfer factors for the di-electron and di-muon channels for the large-R jet $p_t$, large-R jet mass, and $b$-jet angular distance in the Boosted 2B signal region.}  
+    \label{fig:TF_Geq2BFatJ}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/TFPlots/Eq0BFatJ/leadJet_Pt_Eq0BFatJ.pdf}
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/TFPlots/Eq0BFatJ/dijet_m_Eq0BFatJ.pdf}
+   \caption{The transfer factors for the di-electron and di-muon channels for the large-R jet $p_t$ and large-R jet mass Boosted 0B signal region.} 
+    \label{fig:TF_Eq0BFatJ}
+\end{figure}
+
+The difference between the data-driven estimation and MC estimation of the $t\bar{t}$ background is shown in Figures~\ref{fig:ttbarDDPlot_Geq2BiJ, fig:ttbarDDPlot_Eq0BiJ, fig:ttbarDDPlot_Geq2BFatJ, fig:ttbarDDPlot_Eq0BFatJ} for the same selection of observables. The data-driven estimation of the background is consistently about 10\% higher in the bulk of the Resolved signal regions, with peaks above 20\%. 
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/ttbarDDPlots/Geq2BiJ/leadBJet_Pt_Geq2BiJ.pdf}
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/ttbarDDPlots/Geq2BiJ/dibjet_pt_Geq2BiJ.pdf}\\
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/ttbarDDPlots/Geq2BiJ/dibjet_m_Geq2BiJ.pdf}
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/ttbarDDPlots/Geq2BiJ/dr_Geq2BiJ.pdf}
+
+    \caption{A comparison of the $t\bar{t}$ background estimation from data and simulation for the leading $b$-jet $p_t$, di-$b$-jet $p_t$, di-$b$-jet mass, and $b$-jet angular distance in the Resolved 2B signal region.}
+    \label{fig:ttbarDDPlot_Geq2BiJ}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/ttbarDDPlots/Eq0BiJ/leadJet_Pt_Eq0BiJ.pdf}
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/ttbarDDPlots/Eq0BiJ/dijet_pt_Eq0BiJ.pdf}\\
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/ttbarDDPlots/Eq0BiJ/dijet_m_Eq0BiJ.pdf}
+    \caption{A comparison of the $t\bar{t}$ background estimation from data and simulation for the leading jet $p_t$, di-jet $p_t$, and di-jet mass in the Resolved 0B signal region.}    \label{fig:ttbarDDPlot_Eq0BiJ}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/ttbarDDPlots/Geq2BFatJ/leadBJet_Pt_Geq2BFatJ.pdf}
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/ttbarDDPlots/Geq2BFatJ/dibjet_m_Geq2BFatJ.pdf}\\
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/ttbarDDPlots/Geq2BFatJ/dr_Geq2BFatJ.pdf}
+    \caption{A comparison of the $t\bar{t}$ background estimation from data and simulation for the large-R jet $p_t$, large-R jet mass, and di-$b$-jet angular distance in the Boosted 2B signal region.}  
+    \label{fig:ttbarDDPlot_Geq2BFatJ}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/ttbarDDPlots/Eq0BFatJ/leadBJet_Pt_Eq0BFatJ.pdf}
+    \includegraphics[width=0.49\linewidth]{zhf-analysis/ttbarDDPlots/Eq0BFatJ/dibjet_m_Eq0BFatJ.pdf}\\
+    \caption{A comparison of the $t\bar{t}$ background estimation from data and simulation for the large-R jet $p_t$ and large-R jet mass in the Boosted 0B signal region.} 
+    \label{fig:ttbarDDPlot_Eq0BFatJ}
+\end{figure}
+
+Lastly, in Tables~\ref{tab:ttbarYieldDD_Geq2BiJ, tab:ttbarYieldDD_Eq0BiJ, tab:ttbarYieldDD_Geq2BFatJ, tab:ttbarYieldDD_Eq0BFatJ} we report the exact values of the estimated number of $t\bar{t}$ events for both the data-drive and MC method for all years of data taking in all signal regions. The table with all backgrounds is available in Section~\ref{sec:BkgEstimate}.
+
+%Reso 2B
+\begin{table}[h!]
+\centering
+\begin{tabular}{cccc}
+\multicolumn{1}{l}{}              & \multicolumn{3}{l}{\large{$t\bar{t}$ Resolved 2B Yields}}                                                                                          \\ \cline{2-4} 
+\multicolumn{1}{c|}{}             & \multicolumn{1}{c|}{$Z\rightarrow \mu^+\mu^-$} & \multicolumn{1}{c|}{$Z\rightarrow e^+e^-$} & \multicolumn{1}{c|}{Total} \\ \hline
+\multicolumn{1}{|c|}{Data-driven} & \multicolumn{1}{c|}{5518}                      & \multicolumn{1}{c|}{3599}                  & \multicolumn{1}{c|}{9117}  \\ \hline
+\multicolumn{1}{|c|}{Monte Carlo} & \multicolumn{1}{c|}{5126}                      & \multicolumn{1}{c|}{3328}                  & \multicolumn{1}{c|}{8454}  \\ \hline
+\end{tabular}
+\label{tab:ttbarYieldDD_Geq2BiJ}
+\caption{The expected yields from $t\bar{t}$ events in the di-muon and di-electron channels with a data-driven estimation and a Monte Carlo estimation in the Resolved 2B signal region.}
+\end{table}
+
+%Reso 0B
+\begin{table}[h!]
+\centering
+\begin{tabular}{cccc}
+\multicolumn{1}{l}{}              & \multicolumn{3}{l}{\large{$t\bar{t}$ Resolved 0B Yields}}                                                                                          \\ \cline{2-4} 
+\multicolumn{1}{c|}{}             & \multicolumn{1}{c|}{$Z\rightarrow \mu^+\mu^-$} & \multicolumn{1}{c|}{$Z\rightarrow e^+e^-$} & \multicolumn{1}{c|}{Total} \\ \hline
+\multicolumn{1}{|c|}{Data-driven} & \multicolumn{1}{c|}{19563}                     & \multicolumn{1}{c|}{12323}                 & \multicolumn{1}{c|}{31986} \\ \hline
+\multicolumn{1}{|c|}{Monte Carlo} & \multicolumn{1}{c|}{13023}                     & \multicolumn{1}{c|}{8180}                  & \multicolumn{1}{c|}{21203} \\ \hline
+\end{tabular}
+\label{tab:ttbarYieldDD_Eq0BiJ}
+\caption{The expected yields from $t\bar{t}$ events in the di-muon and di-electron channels with a data-driven estimation and a Monte Carlo estimation in the Resolved 0B signal region.}
+\end{table}
+
+%Boost 2B
+\begin{table}[h!]
+\centering
+\begin{tabular}{cccc}
+\multicolumn{1}{l}{}              & \multicolumn{3}{l}{\large{$t\bar{t}$ Boosted 2B Yields}}                                                                                           \\ \cline{2-4} 
+\multicolumn{1}{c|}{}             & \multicolumn{1}{c|}{$Z\rightarrow \mu^+\mu^-$} & \multicolumn{1}{c|}{$Z\rightarrow e^+e^-$} & \multicolumn{1}{c|}{Total} \\ \hline
+\multicolumn{1}{|c|}{Data-driven} & \multicolumn{1}{c|}{74}                        & \multicolumn{1}{c|}{51}                    & \multicolumn{1}{c|}{125}   \\ \hline
+\multicolumn{1}{|c|}{Monte Carlo} & \multicolumn{1}{c|}{75}                        & \multicolumn{1}{c|}{47}                    & \multicolumn{1}{c|}{122}   \\ \hline
+\end{tabular}
+\label{tab:ttbarYieldDD_Geq2BFatJ}
+\caption{The expected yields from $t\bar{t}$ events in the di-muon and di-electron channels with a data-driven estimation and a Monte Carlo estimation in the Boosted 2B signal region.}
+\end{table}
+
+%Boost 0B
+\begin{table}[h!]
+\centering
+\begin{tabular}{cccc}
+\multicolumn{1}{l}{}              & \multicolumn{3}{l}{\large{$t\bar{t}$ Boosted 0B Yields}}                                                                                           \\ \cline{2-4} 
+\multicolumn{1}{c|}{}             & \multicolumn{1}{c|}{$Z\rightarrow \mu^+\mu^-$} & \multicolumn{1}{c|}{$Z\rightarrow e^+e^-$} & \multicolumn{1}{c|}{Total} \\ \hline
+\multicolumn{1}{|c|}{Data-driven} & \multicolumn{1}{c|}{2162}                      & \multicolumn{1}{c|}{1510}                  & \multicolumn{1}{c|}{3672}  \\ \hline
+\multicolumn{1}{|c|}{Monte Carlo} & \multicolumn{1}{c|}{1848}                      & \multicolumn{1}{c|}{1303}                  & \multicolumn{1}{c|}{3151}  \\ \hline
+\end{tabular}
+\label{tab:ttbarYieldDD_Eq0BFatJ}
+\caption{The expected yields from $t\bar{t}$ events in the di-muon and di-electron channels with a data-driven estimation and a Monte Carlo estimation in the Boosted 0B signal region.}
+\end{table}
+
+
+\subsection{Flavour fit}
+\label{sec:FlavFit}
+
+To improve the modelling of the $Z$+jets backgrounds in the signal regions, another maximum-likelihood fit to data is carried out to extract their distributions. For each observable measured, flavour templates are created using the DL1r score as the discriminating variable. The fit is carried out simultaneously in the di-electron and di-muon channels. 
+
+The flavour template is based on quantiles of the DL1r score, defined based on the $b$-tagging efficiency. These are 100-85\%, 85-77\%, 77-70\%, 70-60\%, and below 60\%. The template thus consists of 15 bins, accounting for all possible unique combinations of jets falling into the five quantiles. An outline of the template scheme is provided in Table~\ref{tab:FlavFitQuantiles}. In the Resolved 2B region, only bins 13-15 are populated, while in the Resolved 0B region, only bins 1-3, 6, 7, and 10 are populated. 
+
+\begin{table}
+    \centering
+    \begin{tabular}{c|c|c}
+       Bin  & \makecell{Jet 1\\ Quantile}  & \makecell{Jet 2 \\ Quantile}\\ \hline
+        1 & 100-85\% & 100-85\% \\ \hline
+        2 & 100-85\% & 85-77\% \\ \hline
+        3 & 100-85\% & 77-70\% \\ \hline
+        4 & 100-85\% & 70-60\% \\ \hline
+        5 & 100-85\% & $<60$~\% \\ \hline
+        6 & 85-77\% & 85-77\%\\ \hline
+        7 & 85-77\% & 77-70\%\\ \hline
+        8 & 85-77\% & 70-60\%\\ \hline
+        9 & 85-77\% & $<60$~\%\\ \hline
+        10 & 77-70\% & 77-70\% \\ \hline
+        11 & 77-70\% & 70-60\% \\ \hline
+        12 & 77-70\% & $<60$~\%\\ \hline
+        13 & 70-60\% & 70-60\%\\ \hline
+        14 & 70-60\% & $<60$~\%\\ \hline
+        15 & $<60$~\% & $<60$~\%
+    \end{tabular}
+    \caption{The bin numbering scheme for the flavour template based on the $b$-tagging efficiency of the two jets in the resolved signal regions.}
+    \label{tab:FlavFitQuantiles}
+\end{table}
+
+The fit includes four floating parameters corresponding to the normalisation scale factors of the $Z$+jets signal and backgrounds. Specifically, the regions considered correspond to $Z+bb$, $Z+b$, $Z+c$, and $Z$+light\footnote{The $Z+b$ region contains a $b$-jet and either a $c$- or light jet, while the $Z+c$ region contains a $c$-jet and either a second $c$-jet or a light jet.}. The normalisations of all non-$Z$+jets backgrounds are fixed to their MC estimations (or data-driven estimation in the case of $t\bar{t}$).
+
+Systematic uncertainties are propagated with the offset method. The fit is re-run for each systematic variation and different per-bin scale factors are extracted each time. These scale factors are then propagated to the unfolding procedure. 
+
+
+\subsection{Background estimation}
+\label{sec:BkgEstimate}
+
+\todo{Put a table with the values.}
+
+\section{Systematics}
+
+\section{Detector Level Plots}
+
+\section{Unfolding}
+
+\section{Results}
+
+%flav fit
+
+%data/mc plots
+%systematics
+%unfolding
+%results /future prospects
+
+%low-level object appendix
+%omnifold appendix
+
+%plot varying track pt cut with fixed wps
+%boosted bhad migration plots?
+
+
+\end{document}

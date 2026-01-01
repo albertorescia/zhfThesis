@@ -4,15 +4,22 @@
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{mathtools}
+\usepackage{comment}
 \usepackage{array}
 \usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows,calc}
+\usepackage{afterpage}
+\usepackage{pdflscape}
 \usepackage{gensymb}
 \usepackage{slashed}
 \usepackage{physics}
+\usepackage{makecell}
 \usepackage{bbold}
 \usepackage{stackengine}
 \usepackage{amsfonts}
 \usepackage{amssymb}
+\usepackage{multirow}
 \usepackage{graphicx}
 \usepackage{geometry}
 \usepackage{pdfpages}
@@ -35,6 +42,9 @@
 
 \usepackage{subfiles} % Best loaded last in the preamble
 
+%Maybe the real phd is the friends we made along the way
+%To "b" or not to "b", that is the question. The question of flavour tagging nearly brought Hamlet to 
+ 
 %\title{\Huge{Dead inside:}\\ \Large
 %An exploration of heavy flavour jets; \\ Or, losing myself in a quest for academic validation}
 %\title{Dead inside: An exploration of heavy flavour jets; \\
@@ -53,17 +63,17 @@
 
 
 \subfile{theory chapter/ch1.tex}
-
+\subfile{flavLabelling/pheno.tex}
 \subfile{atlas/atlas_chapter.tex}
+\subfile{xbb/xbb.tex}
 
-\subfile{ftag/ch3.tex}
-
-\subfile{analysis-chapter/lp_chapter.tex}
+\subfile{zhf-analysis/zhf}
 %Cite measurement of Hbb at ATLAS and CMS
 %Discovery of Higgs at CMS and ATLAS
 %Update Feynman diagrams
 %Aggiungere Properties of the Higgs as measured at colliders
 %mass, width, ecc. 
+
 
 \bibliographystyle{unsrt}
 \bibliography{phd_thesis.bib}

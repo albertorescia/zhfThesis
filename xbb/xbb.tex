@@ -1,0 +1,669 @@
+\documentclass[10pt,a4paper]{book}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{subfig}
+\usepackage{afterpage}
+\usepackage{lscape}
+\usepackage{amssymb}
+\usepackage{epigraph}
+\usepackage{makecell}
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{comment}
+\usepackage{graphicx}
+\author{Alberto Rescia}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\begin{document}
+
+\chapter{Boosted Xbb tagger}
+
+In order to identify final states containing heavy flavours, experiments such as ATLAS have developed flavour tagging techniques based on properties of heavy flavour jets which distinguish them from light jets. In Section~\ref{sec:ftag}, we describe these properties and the flavour tagging algorithm implemented by the ATLAS Collaboration in Run 2, DL1r. 
+
+The higher centre-of-mass energy available in Run 2 also necessitated the development of a dedicated boosted tagger to identify $b$-jets in topologies for which particles such as, but not limited to, the Higgs boson decay to $b$-quarks at a small angular distance from each other. The resulting $b$-jets are contained within a large-R jet of radius $R = 1.0$, and the tagging algorithm is applied directly to this jet. This tagger is known as the \emph{Xbb tagger}, and is introduced in Section~\ref{sec:xbbIntro}. The efficiency scale factor calibration of this tagger on multijet events is then described in Section~\ref{sec:calibration}.
+
+\section{Flavour tagging}
+\label{sec:ftag}
+This thesis focuses mainly on the substructure of heavy flavour jets. In order to study these jets at colliders, we must first be able to identify them in a given final state. Experimentally, this process is known as \emph{flavour tagging}. This section will focus on the description of the ATLAS DL1r tagger and its performance. 
+
+\subsection{Flavour tagging in a nutshell}
+
+Jets, as they are defined, are merely a collection of particles grouped together by an algorithm. In order to discern more information of the underlying physics which led to their formation, it is often useful to know which particle gave origin to the jet.
+
+Flavour tagging algorithms are one of the first solutions devised to exploit substructure properties of jets to understand more about their formation. Specifically, the aim of flavour tagging is to understand whether jets originate from heavy quarks or light quarks or gluons. Jets falling in the latter case are often grouped together and are collectively known as \emph{light jets}.
+
+Flavour tagging relies on the long lifetime of heavy flavour hadrons. B hadrons in particular have the lifetime of the order of 1~ps, which, at the relativistic speeds at which they travel when produced at colliders, translates to a macroscopic distance traversed before the decay occurs, allowing for the identification of the decay vertex in the detector. Tracks originating from this vertex are characterised by a large $d_0$ as they are not aligned with the primary vertex. A representation of the formation of the secondary vertex is shown in Figure~\ref{fig:svtx}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth]{xbb/ftag/B-tagging_diagram.png}
+    \caption{The properties of a secondary vertex from the decay of a B hadron which allow for flavour tagging~cite{wiki:btag}.}
+    \label{fig:svtx}
+\end{figure}
+
+Various other effects also contribute to the identification of heavy flavour jets. Focusing again on $b$-jets, the high charged particle multiplicity of the principle decay channels facilitates the identification of the secondary vertex. This vertex is characterised by a mass of the order of 5~GeV, the mass of the hadron before it decayed. Due to the leading particle effect, the heavy hadron (and consequently its decay products) also carries a significant fraction of the momentum of the jet. 
+
+All these features are also present in $c$-jets, though they are not as pronounced as in $b$-jets, rendering the task of flavour tagging more difficult. Ideal light jets, on the other hand, lack these features. They consist mainly of tracks which point directly back to the primary vertex. In practice, however, many factors can lead to the misidentification of light jets as heavy-flavour jets. 
+
+Early flavour tagging algorithms, such as those used during Run 1 of ATLAS, exploited these geometric and topological properties and identified $b$-jets via a cut-based approach. The approach was not sophisticated enough for the identification of $c$-jets. The advent of machine learning brought about a revolution in the world of flavour tagging. Next generation taggers, such as the DL1 series, fed the output of several low-level algorithms and kinematic properties of jets to a neural network to tag jets. $c$-tagging became possible at this point.
+
+The next revolution was brought about by the use of graph neural networks. The GN tagger series represents a jet as a graph, where each track is a node. Kinematic information of the track, together with low-level detector information such as the number of hits or holes in the layers of the inner detector, are used to train the algorithm. This strategy proved successful, and led to a marked increase in tagging performance for Run 3.
+
+The rejection of flavour tagging algorithms used by ATLAS for $t\bar{t}$ events with a 70\% $b$-tagging working point in shown in Figure~\ref{fig:ftag_time}. Specifically, three iterations of the DL1 series is shown, together with the first two iterations of the GN series, with DL1 used as a reference point. The increase in tagging performance over time is striking, with a notable jump in the GN series. 
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth]{xbb/ftag/ftag_time.pdf}
+    \caption{The improvement over Run 2 and Run 3 of the ATLAS Flavour Tagging algorithm, specifically different iterations of the DL1 series and the GN series~\cite{Duperrin:2855275}.}
+    \label{fig:ftag_time}
+\end{figure}
+
+\subsection{DL1r}
+
+The flavour tagging algorithm used in the measurement which constitutes the bulk of this thesis is DL1r. DL1r is part of the DL1 series, i.e.\ the second generation of flavour tagging algorithms used by ATLAS. It is based on the output of a high-level neural network which takes in several low-level tagging algorithms as well as kinematic information of the jet in question. With this information it decides whether a jet is, $b$-, $c$-, or light.
+
+The low-level algorithms in question are described below.
+
+\subsubsection{IP2D \& IP3D}
+\label{IP algos}
+
+IP2D and IP3D are two algorithms based on the track impact parameter (IP). The former considers only the transverse IP, while the latter considers the longitudinal IP as well. Specifically, the \emph{signed IP significances} are used, where the sign refers to the position of a given track with respect to the axis of the jet that belongs to, with a positive (negative) sign referring to a track which is ahead (behind) the jet axis. The value of the signed IP is divided by the error of the value itself to obtain its significance. $s_{d_0}$ and $s_{z_0}$ are used to refer to the transverse and longitudinal IP significances, respectively.
+
+Tracks coming from secondary vertices are characterised by large values of the signed IP significance as they are not aligned with the primary vertex of the event. 
+
+MC simulations of $b$- and $c$-jets from $t\bar{t}$ and $Z^\prime$\footnote{$Z^\prime$ refers to a particle with the same properties as the $Z$ boson but with an artificially high mass. It is used to derive distributions of jets at high-$p_t$.} events are used to populate reference histograms of the signed IP significances, $S_i$. These are used to derive probability density functions, from which log-likelihood ratios are calculated to distinguish each category - $b$-, $c$-, and light jets - from each other. As an example, for the $b$- vs. light jet hypothesis, this ratio is
+\begin{equation}
+    \sum_i p_b(S_i)/p_\text{light}(S_i),
+\end{equation}
+where the sum runs on all tracks $i$ in the jet. $p_b(S_i)$ and $p_\text{light}(S_i)$ represent the template probability density functions for the two hypotheses. Flavour probabilities are assumed to be independent. 
+
+The $s_{d_0}$ value for tracks from $b$-, $c$- and light jets with $p_t > 20$ GeV from $t\bar{t}$ events is shown in Figure~\ref{ip2d}, together with the IP2D discriminant for the $b$-jet vs. light jet flavour hypothesis. The discrimination power of the variable is clearly seen.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.48\linewidth]{xbb/ftag/d0sig.pdf}
+    \includegraphics[width=0.48\linewidth]{xbb/ftag/ip2d.pdf}
+
+    \caption{The signed transverse IP distribution for tracks from $b$-, $c$- and light jets coming from $t\bar{t}$ events (left), together with the log-likelihood ratio IP2D computed from it (right)~\cite{ATLAS:2022qxm}.}
+    \label{fig:ip2d}
+\end{figure}
+
+\subsubsection{RNNIP}
+
+The IP-based algorithms described in Section~\ref{IP algos} assume that each track's IP significance is independent from that of every other track. However, in practice this is not a case. If a track with a large IP is identified from a secondary vertex stemming from a heavy-flavour hadron decay, it is very likely to find at least one other track with a large IP significance within the jet. To account for this and to improve the modelling of the properties of heavy flavour jets, recurrent neural networks (RNNs) are used to learn the correlation between tracks in a given jet. The algorithm used is known as RNNIP.
+
+A vector of track features, such as $s_{d_0}$ and $s_{z_0}$, the $p_t$ fraction carried by the track $p_t^{\text{frac}}$, distance to the jet axis $\Delta R(\text{jet}, \text{track})$ and hit multiplicity in the various ID layers, are used to train the RNN. The vector is ordered by decreasing values of $\vert S_{d_0}\vert$ to highlight the importance of this feature. The $p_t$ spectra of the $b$-jet and $c$-jet distributions are also reweighted to that of the light jet distribution to avoid training the network on features specifically related to the specific sample or flavour features.
+
+The output of RNNIP 
+\begin{equation}
+    D_{\text{RNNIP}} = \ln\left(\frac{p_b}{f_c\cdot p_c + (1-f_c)\cdot p_\text{light}} \right)
+    \label{discriminant}
+\end{equation}
+ is used as a discriminant, where $f_c$ represents the fraction of $c$-jets in the sample, which was optimally found to be $f_c = 0.07$.
+
+ The distribution of the flavour tagging discriminant derived from the RNN for jets from a $t\bar{t}$ sample is shown in Figure~\ref{fig:rnn}.
+
+ \begin{figure}
+     \centering
+     \includegraphics[width=0.8\linewidth]{xbb/ftag/rnn.pdf}
+     \caption{The RNNIP flavour tagging discriminant for $b$-, $c$- and light jets~\cite{ATLAS:2022qxm}.}
+     \label{fig:rnn}
+ \end{figure}
+
+ \subsubsection{SV1}
+ \label{SV1}
+Another way to identify heavy flavour jets is to explicitly reconstruct the secondary vertex. The secondary-vertex-tagging algorithm (SV1)~\cite{ATLAS:2017kle} does just that. Using the 25 highest $p_t$ tracks within the heavy flavour jet candidate, the algorithm identifies all possible two-track vertices. Vertices which are found to be compatible with particles such as the $K_S$, $\Lambda$ are rejected, along with photon conversions and hadron conversions. The algorithm iteratively tries to fit a single secondary vertex from the remaining vertex candidates. For each iteration, a $\chi^2$ test is used to evaluate the track-to-vertex matching for all tracks. The track with the largest $\chi^2$ is then removed from the fit. This process is repeated until a vertex with a small enough $\chi^2$ and mass below 6~GeV is found.   
+ 
+\subsubsection{JetFitter}
+
+JetFitter~\ref{ATLAS:2018nnq} is a multi-vertex secondary vertex finder which makes use of the topological structure of heavy hadron decays to reconstruct a $b$-hadron's full decay chain. Using a Kalman filter, the algorithm identifies a line on which the $b$-hadron, and subsequent $c$-hadron decays occur, allowing for the reconstruction of the $b$-hadron's trajectory and the vertex positions with even just a single track from each decay. To identification of $c$-jets from $b$-jets and light-flavour jets is improved by specifically targeting jets that have a single reconstructed secondary vertex at a distance similar to the $b$-hadron decay vertex in $b$-jets and with intermediate charged decay multiplicity. 
+
+\subsubsection{DL1r}
+
+The outputs of the of the low-level algorithms described above are combined with the $p_t$ and $\vert\eta\vert$ of the jet to train a high-level neural network, known as DL1(r). The difference between the two lies in the inclusion of the RNNIP output, which is present in DL1r but not in DL1. 
+Table~\ref{tab:HLTaggerInputs} provides an overview of all variables included in the neural network.
+
+\begin{table}[htbp]
+\caption{The input variables used to train the DL1r tagging algorithm~\cite{ATLAS:2022qxm}}
+\label{tab:HLTaggerInputs}
+\begin{center}
+\scriptsize
+\begin{tabular}{|l|c|p{0.4\textwidth}|}
+\hline
+Input & Variable & Description \\
+\hline
+\multirow{2}{*}{Kinematics}
+& $p_t$ & Jet $p_t$ \\
+& $\eta$ & Jet $|\eta|$ \\
+\hline
+\multirow{3}{*}{IP2D/IP3D}
+& $\log(P_{b}/P_{\mathrm{light}})$  & Likelihood ratio between the $b$-jet and light-flavour jet hypotheses  \\
+& $\log(P_{b}/P_{\mathrm{c}})$  & Likelihood ratio between the $b$- and $c$-jet hypotheses  \\
+& $\log(P_{c}/P_{\mathrm{light}})$  & Likelihood ratio between the $c$-jet and light-flavour jet hypotheses  \\
+\hline
+\multirow{8}{*}{SV1}
+& $m$(SV) & Invariant mass of tracks at the secondary vertex assuming pion mass \\
+& $f_E$(SV) & Energy fraction of the tracks associated with the secondary vertex \\
+& $N_{{\mathrm{TrkAtVtx}}}$(SV) & Number of tracks used in the secondary vertex \\
+& $N_{{\mathrm{2TrkVtx}}}$(SV) & Number of two-track vertex candidates \\
+& $L_{xy}$(SV) & Transverse distance between the primary and secondary vertex \\
+& $L_{xyz}$(SV)& Distance between the primary and the secondary vertex  \\
+& $S_{xyz}$(SV)& Distance between the primary and the secondary vertex divided by its uncertainty \\
+& $\Delta R(\vec p_{\mathrm{jet}}, \vec p_{\mathrm{vtx}})$(SV) & $\Delta R$ between the jet axis and the direction of the secondary vertex relative to the primary vertex. \\
+\hline
+\multirow{8}{*}{\textsc{JetFitter}}
+& $m$(JF) & Invariant mass of tracks from displaced vertices \\
+& $f_E$(JF) &  Energy fraction of the tracks associated with the displaced vertices \\
+& $\Delta R(\vec p_{\mathrm{jet}}, \vec p_{\mathrm{vtx}})$(JF) & $\Delta R$ between the jet axis and the vectorial sum of momenta of all tracks attached to displaced vertices \\
+& $S_{xyz}$(JF) & Significance of the average distance between PV and displaced vertices \\
+& $N_{{\mathrm{TrkAtVtx}}}$(JF) & Number of tracks from multi-prong displaced vertices \\
+& $N_{{\mathrm{2TrkVtx}}}$(JF) & Number of two-track vertex candidates (prior to decay chain fit) \\
+& $N_{{\mathrm {1\mbox{-}trk\ vertices}}}$(JF) & Number of single-prong displaced vertices \\
+& $N_{{\geq \mathrm{2\mbox{-}trk\ vertices}}}$(JF) & Number of multi-prong displaced vertices \\
+& $L_{xyz}(2^{{\mathrm{nd}}}/3^{{\mathrm{rd}}}{\mathrm{vtx}})$(JF) & Distance of $2^{{\mathrm{nd}}}$ or $3^{{\mathrm{rd}}}$ vertex from PV \\
+& $L_{xy}(2^{{\mathrm{nd}}}/3^{{\mathrm{rd}}}{\mathrm{vtx}})$(JF) & Transverse displacement of the $2^{{\mathrm{nd}}}$ or $3^{{\mathrm{rd}}}$ vertex \\
+& $m_{\mathrm{Trk}}(2^{{\mathrm{nd}}}/3^{{\mathrm{rd}}}{\mathrm{vtx}})$(JF) & Invariant mass of tracks associated with $2^{{\mathrm{nd}}}$ or $3^{{\mathrm{rd}}}$ vertex \\
+& $E_{\mathrm{Trk}}(2^{{\mathrm{nd}}}/3^{{\mathrm{rd}}}{\mathrm{vtx}})$(JF) &  Energy fraction of the tracks associated with $2^{{\mathrm{nd}}}$ or $3^{{\mathrm{rd}}}$ vertex   \\
+& $f_E (2^{{\mathrm{nd}}}/3^{{\mathrm{rd}}}{\mathrm{vtx}})$(JF) & Fraction of charged jet energy in $2^{{\mathrm{nd}}}$ or $3^{{\mathrm{rd}}}$ vertex\\
+& $N_{{\mathrm{TrkAtVtx}}}(2^{{\mathrm{nd}}}/3^{{\mathrm{rd}}}{\mathrm{vtx}}) $(JF) & Number of tracks associated with $2^{{\mathrm{nd}}}$ or $3^{{\mathrm{rd}}}$ vertex \\
+& $\eta_\text{trk}^{\min, \, \max, \, \text{avg}}(2^{\text{nd}})(\text{JF})$ & Min., max. and avg. track rapidity of tracks at $2^{{\mathrm{nd}}}$ or $3^{{\mathrm{rd}}}$ vertex \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+DL1(r) is trained on a sample consisting in 70\% of jets from a $t\bar{t}$ production process, while the remaining portion consists of jets from a $Z^\prime \rightarrow q\bar{q}$ sample, where the $Z^\prime$ corresponds to a heavy resonance. These are set to decay to $b$-quarks, $c$-quarks and light quarks $1/3$ of the time each. The two samples are used to generate jets across a wide $p_t$ spectrum, specifically for jets with $p_t > 250$~GeV. The $p_t$ spectrum of the jets used for training is reweighted in such a way that the final $p_t$ distribution is uniform in order to avoid biases. Jets can be of different types, such as PFlow jets of radius $R = 0.4$ or VR trackjets.
+
+The resulting output discriminant from the tagger, $D_{\text{DL1r}}$, is defined analogously to Eq.~\ref{discriminant}. In this case, however, the $c$-jet fraction is set to $f_c = 0.018$. $f_b$ is instead set to 0.2. 
+
+Figure~\ref{fig:dl1r discriminant} shows the output of DL1r for $b$-jets, $c$-jets, and light PFlow jets in the $p_t$ range $20 < p_t < 250$~GeV. Clear discrimination of $b$-jets is visible. Figure~\ref{fig:ebb} shows the rejection of $c$- and light jets as a function of $b$-tagging efficiency for DL1r compared to that for DL1 and MV2c10~\cite{ATLAS:2019bwq}, a tagging algorithm based on a boosted decision tree used by ATLAS during the early years of Run 2. A marked improvement in both the $c$-jet rejection and light jet rejection can be seen.
+
+To use the DL1r tagger, several working points are calibrated. These are the 60\%, 70\%, 77\%, and 85\% working points, which correspond to a $b$-jet acceptance of the same percentage. Lower working points are characterised by a higher $c$-jet and light jet rejection, resulting in a higher purity of $b$-jets. The $c$-jet and light jet rejections for each working point are shown in Table~\ref{tab:pf_dl1r_rej}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|c|c|c|}
+       Working Point  & $c$-jet rejection  & light jet rejection \\
+       60\%  & 29 & 1155\\
+       70\%  & 10 & 417\\
+       77\%  & 5 & 170\\
+       85\%  & 2 & 38\\
+    \end{tabular}
+    \caption{The $c$-jet and light jet rejections for the DL1r tagger trained on PFlow jets for each calibrated working point.}
+    \label{tab:pf_dl1r_rej}
+\end{table}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth]{xbb/ftag/dl1r_discriminant.pdf}
+    \caption{The DL1r discriminant for $b$-jets, $c$-jets, and light jets~\cite{ATLAS:2022qxm}.}
+    \label{fig:dl1r discriminant}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth]{xbb/ftag/ebb.pdf}
+    \caption{The $c$- and light jet rejections vs. $b$-tagging efficiencies of the DL1r, DL1, and MV2c10 taggers~\cite{ATLAS:2022qxm}.}
+    \label{fig:ebb}
+\end{figure}
+
+\paragraph{Performance on VR Trackjets}
+
+The performances of the DL1r tagger described above are valid for $R = 0.4$ PFlow jets. The tagger is also trained on other jets in use by ATLAS, including VR trackjets. These performances are be described below, as they are relevant for Section~\ref{sec:xbbIntro} and the measurement in Chapter~\ref{ch:z+bb intro}.
+
+The DL1r tagger for VR trackjets is calibrated to the same working points as for PFlow jets. The value of the $c$-jet fraction in the training sample remains $f_c = 0.30$. Table~\ref{tab:vr_dl1r_rej} shows the $c$-jet and light jet rejections for each working point. 
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|c|c|c|}
+       Working Point  & $c$-jet rejection  & light jet rejection \\
+       60\%  & 28 & 1140\\
+       70\%  & 10 & 400\\
+       77\%  & 5 & 148\\
+       85\%  & 2 & 39\\
+    \end{tabular}
+    \caption{The $c$-jet and light jet rejections for the DL1r tagger trained on VR trackjets for each calibrated working point.}
+    \label{tab:vr_dl1r_rej}
+\end{table}
+
+ 
+\section{The Xbb tagger}
+\label{sec:xbbIntro}
+The Xbb tagger is a tool optimised for the identification of $X\rightarrow b\bar{b}$ final states in boosted topologies. Here, $X$ is typically a Higgs boson, though the tool is designed in such a way as to tag boosted $b\bar{b}$ pairs arising from a generic particle\cite{ATLAS:2023azi}.
+
+The too is developped as a neural network trained on the the large-R jet kinematics and on information stemming from VR trackjets used to resolve the individual $b$-hadron decays. \code{AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets} are used for training. These jets must have a $p_t$ in the range $250 < p_t < 3000$~GeV and $\vert \eta\vert < 2.0$. VR trackjets with are ghost-associated to the large-R jet. They must have $p_t > 7$~GeV, $\vert \eta \vert < 2.5$ and at least two track constituents. VR trackjets are ghost-associated to the large-R jet. This procedure is described in Section~\ref{sec:ghost}. If the algorithm finds the ghosts as constituents of the new jet, the VR trackjet is associated.
+
+Several input variables are used to train the Xbb tagger. These include the probability of a given trackjet associated to the large-R jet of being a $b$-, $c$-, and light jet ($p_b$, $p_c$, $p_\text{light}$). These are included for up to three (if available) VR trackjets. Each individual probability is decided using the DL1r tagger on the trackjet. The list of training variables is concluded with kinematic information of the large-R jet, such as its $p_t$ and $\eta$.
+
+Jets from $H\rightarrow b\bar{b}$, $Z^\prime \rightarrow t\bar{t}$ and multijet samples are used to train the Xbb tagger. The $H\rightarrow b\bar{b}$ sample is treated as signal, while the others are treated as background. In the signal sample, a Higgs boson is required to be ghost-matched to the large-R jet.The three MC samples used for training are built in such a way as to have identical $p_t$ distributions and a flat mass distribution, in order to avoid the constraint of the Higgs mass resonance. 
+
+The Xbb tagger output is a discriminant which gives the likelihood of the large-R jet coming from a Higgs boson decaying to a pair of $b$-quarks vs. $t\bar{t}$ or multijet. In particular the probability of each outcome is quantified in the values $p_\text{Higgs}$, $p_\text{top}$, and $p_\text{multijet}$, respectively. The tagger output is then defined analogously to Eq.~\ref{discriminant}:
+
+\begin{equation}
+    D_{Xbb} = \ln \left( \frac{p_{\text{Higgs}}}{f_{\text{top}} \cdot p_{\text{top}} + (1 - f_{\text{top}}) \cdot p_{\text{multijet}}} \right)
+    \label{eq:dxbb},
+\end{equation}
+where $f_\text{top} = 0.25$. Figure~\ref{xbb discriminant} shows the $D_{Xbb}$ output for jets with $p_t > 250$~GeV and mass $76 < m_J/\text{GeV} < 146$ from Higgs, top and multijet samples compared to the output obtained by directly tagging the two leading VR trackjets with DL1r. %This value was obtained through dedicated optimisation studies, shown in Figure~\ref{fig:xbb_eff}. Figure~\ref{xbb discriminant} instead shows the $D_{Xbb}$ output for jets with $p_t > 250$~GeV and mass $76 < m_J/\text{GeV} < 146$ from Higgs, top and multijet samples compared to the output obtained by directly tagging the two leading VR trackjets with DL1r.
+
+%\begin{figure}
+%    \centering
+%    \includegraphics[width=0.485\linewidth]{xbb/xbb_ttbar_eff.pdf}
+%    \includegraphics[width=0.485\linewidth]{xbb/xbb_multijet_eff.pdf}
+%    \caption{The $H\rightarrow b\bar{b}$ tagging efficiency vs. $t\bar{t}$ (left) and multijet (right) rejection~\cite{ATLAS:2021gik}.\\
+%    \textcolor{red}{Penso questo plot sia superfluo ora. Sono piu' interessanti le efficienze/rejection con $f_{top}$ fisso.}}
+%    \label{fig:xbb_eff}
+%\end{figure}
+
+\begin{figure}
+\includegraphics[width=0.485\linewidth]{xbb/xbb_dl1.pdf}
+\includegraphics[width=0.485\linewidth]{xbb/xbb.pdf}
+\caption{The Xbb discriminant distribution for Higgs, top and multijet samples when both VR trackjets are required to pass a minimum DL1r threshold (left) vs. for the dedicated Xbb tagger (right)\cite{ATLAS:2020ixf}.}
+\label{xbb discriminant}
+\end{figure}
+
+Large-R jets are considered tagged when either the $D_\text{Xbb}$ discriminant or the the minimum DL1r/MV2c discriminant for the two leading VR trackjets surpasses a given threshold. Three working points are defined: 50\%, 60\% and 70\%, corresponding to appropriate cuts on the discriminants leading to an efficiency in the signal selection equal to the same percentage. 
+
+At the 60\% working point, for jets with $p_t > 500$~GeV, the the multijet and top rejections are found to be 92 and 31, respectively, for the $D_\text{Xbb}$ discriminant. The multijet rejection when double-$b$-tagging with DL1r is comparable, though the $D_\text{Xbb}$ discriminant shows an improvement of a factor of approximately $1.6$ when comparing the top rejection. In general, it is found that the performance of the Xbb tagger when compared to other taggers improves as jet $p_t$ increases. This is due to the more boosted topology, allowing the large-R jet to fully contain more of the decay and the fact the topology is more distinct at higher $p_t$, compared to the resolved topologies used to train the other taggers.
+
+Figure~\ref{fig:xbb_rejection} shows the Xbb tagger rejection of multijet and top jets as a function of signal efficiency for large-R jets with $p_t > 250$~GeV. The rejection is compared to double-$b$-tagging the VR trackjets with the DL1r and MV2 algorithms, as well as double-$b$-tagging trackjets with a fixed radius of $R = 0.2$ with MV2. The rejections as a function of jet $p_t$ for a fixed 60\% WP is then shown in Figure~\ref{fig:xbb_pt}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.495\linewidth]{xbb/xbb_rejection_mj.pdf}
+    \includegraphics[width=0.495\linewidth]{xbb/xbb_rejection_top.pdf}
+
+    \caption{The multijet (left) and $t\bar{t}$ (right) rejection as a function of signal efficiency of the Xbb tagger compared to other taggers, such as DL1r and MV2 applied to VR and fixed-radius trackjets~\cite{ATLAS:2020ixf}.}
+    \label{fig:xbb_rejection}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.495\linewidth]{xbb/xbb_multijet_pt.pdf}
+    \includegraphics[width=0.495\linewidth]{xbb/xbb_top_pt.pdf}
+
+    \caption{The multijet (left) and $t\bar{t}$ rejection as a function of large-R jet $p_t$ of the Xbb tagger compared to other taggers, such as DL1r and MV2 applied to VR and fixed-radius trackjets~\cite{ATLAS:2020ixf}.}
+    \label{fig:xbb_pt}
+\end{figure}
+
+\section{Calibration}
+\label{sec:calibration}
+As the Xbb tagger is trained exclusively on simulated MC events, it must be calibrated to be used in physics analyses. The calibration ensures that the efficiency of the tagger matches between data and simulation of signal and background processes. This work constitutes my ATLAS Qualification Project.
+
+The calibration was carried out on three final states using. The signal efficiency $X\rightarrow b\bar{b}$ is calibrated on $Z (\rightarrow b\bar{b}) + \text{jets}$ and $Z(\rightarrow b\bar{b})\gamma$ events, while the top and multijet backgrounds are calibrated using $t\bar{t}$ and $g\rightarrow b\bar{b}$ events. My worked focused on the $g\rightarrow b\bar{b}$, and is described below. For details regarding the other calibrations, cfr\. Reference~\cite{ATLAS:2021gik}.
+
+\subsection{$g\rightarrow b\bar{b}$ calibration}
+\label{gbb}
+
+The calibration focuses on dijet events where the presence of $b$-hadrons in large-R jets is enhanced in data by requiring a soft muon within the jet area, signalling a heavy-flavour semileptonic decay. The selected sample is then compared to simulation using a multicomponent template fit based on an observable sensitive to the $g\rightarrow b\bar{b}$ vs. $g\rightarrow q\bar{q}$ separation, where $q$ indicates a light-flavour quark.
+
+The full Run 2 dataset is used for the calibration. At the MC level, an inclusive sample is simulated along with a sample in which the events are required to contain a muon at truth level. This muon is required to have $p_t > 3$~GeV and $\vert \eta \vert < 2.8$. 
+
+Objects are selected as described above: a large-R jet satisfying the selection criteria of the Xbb tagger (described in Section~\ref{sec:xbbIntro}) is identified, and up to three VR trackjets are ghost-matched to the jet, henceforth referred to as \emph{subjets}. One subjet is required to contain a muon matching the appropriate selection criteria to preferentially favour jets containing heavy flavours. This subjet is known as the \emph{muon jet}. If more than one subjet contains a muon, the one with the highest $p_t$ is called the muon jet.
+
+Subjets are subsequently labelled according to their truth-level flavour content: the label $B$ is assigned if a $b$-hadron is ghost-matched to the subjet, $C$ if a $c$-hadron is ghost-matched, $L$ if no heavy hadrons are ghost-matched, and $x$ if a subjet of that index is not present in the large-R jet.  
+
+The flavour label is used to determine the flavour category of the large-R jet based on its subjets. The MC to data fit is carried out in each flavour category of the large-R jet. As up to three subjets can be considered in each large-R jet and each is assigned a flavour, a simplified labelling scheme which groups together different three-flavour categories is applied to the large-R jet, as shown in Table~\ref{tab:jet_flavors}. The large-R jet can be labelled as \emph{BB}, \emph{BL}, \emph{CC}, \emph{CL} or \emph{LL}.
+
+\afterpage{
+\begin{landscape}
+\begin{table}[h!]
+\label{tab:jet_flavors}
+\centering
+\small
+\begin{tabular}{|c|c|c|}
+\hline 
+\makecell{\textbf{Large-R jet}\\ \textbf{flavour category}} & \textbf{Subjet flavours} & \makecell{\textbf{Description of}\\ \textbf{flavour category}} \\ 
+\hline 
+BB & \makecell{BBB, BBC, BBL, BBx,\\ BCB, BLB, CBB, LBB} & \makecell{At least two trackjets\\ contain $b$-hadrons} \\ 
+\hline 
+BL & \makecell{BCC, BCL, BCx, CBC, CBL, CBx,\\ CCB, BLC, BLL, BLx, LBC, LBL,\\ LBx, CLB, LCB, LLB, Bxx} & \makecell{Exactly one trackjet\\ contains $b$-hadrons} \\ 
+\hline 
+CC & CCC, CCL, CCx, CLC, LCC & \makecell{At least two trackjets contain\\ $c$-hadrons, and none contain $b$-hadrons}\\ 
+\hline 
+CL & CLL, CLx, LCL, LCx, LLC, Cxx & \makecell{Exactly one trackjet contains\\ $c$-hadrons, and none contain $b$-hadrons}\\ 
+\hline 
+LL & LLL, LLx, Lxx & \makecell{No trackjet contains\\ $b$- or $c$-hadrons} \\ 
+\hline 
+\end{tabular}
+\caption{The large-R jet flavour categories and corresponding subjet flavours. For the subjet labelling scheme, B, C, and L indicate a subjet containing a $b$-hadron, $c$-hadron, or light hadron, respectively, while x indicates a missing subjet. The subjet labelling scheme follows the $p_t$ ordering of the subjets.}
+\end{table}
+\end{landscape}
+}
+
+\subsection{Efficiency scale factor fit strategy}
+
+Given the importance and complexity of the fit procedure for the extraction of the $g\rightarrow b\bar{b}$ scale factors, the methodology is described below.
+
+After labelling the large-R jet, a template of a flavour-sensitive observable is made for fitting MC to data. For this calibration, the mean signed $d_0$ significance $\langle s_{d_0} \rangle$ was chosen, where the mean is calculated on the three highest $p_t$ tracks associated to the jet. The average is specifically chosen to reduce the influence of outliers in light-flavour jets, such as mismodelled tracks or $K_s$ decays.
+
+The fit is carried out in several different $p_t$ regions of the large-R jet: below 280~GeV, 280-310~GeV, 310-340~GeV, 340-380~GeV, 380-420~GeV, 420-460~GeV, 460-500~GeV, 500-550~GeV, 550-600~GeV, 600-750~GeV, 750-1000~GeV, and above 1000~GeV. The four tag regions are fit simultaneously in each $p_t$ bin, though the fits in the various $p_t$ bins are independent.
+
+In each $p_t$ bin, four regions are considered for the template fit: the muon jet and the leading non-muon jet, for a double-$b$-tagged (with DL1r) and non-double-$b$-tagged large-R jet. A 60\% $b$-tagging working point is chosen when defining these regions.
+
+The fit method chosen is a maximum likelihood fit. The aim is to extract the best-fit value of a correction factor $\vec{f}$, i.e.\ the vector of correction factor for each flavour category. This is known as the efficiency scale factor (SF), as is defined as 
+\begin{equation}
+    \text{SF} = \frac{\epsilon_\text{data}}{\epsilon_\text{MC}},
+\end{equation}
+where $\epsilon$ indicates the tagging efficiency in data or MC. Since the efficiency is defined as the ratio of events which pass the selection over the total number of events $\epsilon = N^\text{pass}/N^\text{total}$, the SF can be equivalently written as the ratio of signal strength post- and pre-tagging
+
+\begin{equation}
+\text{SF} = \mu_\text{post-tag}/\mu_\text{pre-tag}.
+\end{equation}
+
+The flavour corrections are allowed to float freely, and are extracted from the fit. The efficiency scale factor in the tag region $\mu_\text{tag} = \epsilon_\text{data}/\epsilon_\text{MC}$ corresponds to the flavour correction in the BB template in the tagged region. The anti-tag scale factor \mbox{$\mu_\text{anti-tag} = \frac{1 - \epsilon_\text{data}}{1 - \epsilon_\text{MC}} = \frac{1 - \mu_\text{tag}\epsilon_\text{MC}}{1-\epsilon_\text{MC}}$} instead represents the difference in tagging rejection rates. The tag and anti-tag regions of the fit are thus required to derive the respective efficiency scale factors. The muon jet and non-muon jet are both considered as the shape distribution of the mean $s_{d_0}$ is uncorrelated in these two regions, thus allowing for the fit to be carried out simultaneously by multiplying the relative likelihoods.
+ 
+In each histogram bin $i$, the expectation value for the number of entries $E[n_i]$ is given by 
+\begin{equation}
+    E[n_i] = \prod_{xx} f_{xx} y_{xx,i} = \vec{f} \cdot \vec{y_i},
+\end{equation}
+where $y_{xx,i}$ is the nominal number of entries in the bin and $f_{xx}$ is a correction factor applied to the flavour template $xx$. The template distributions depend on nuisance parameters (NPs) $\vec{\theta}$ with prior probability distributions determined from auxiliary measurements. The priors are assumed to follow a split-normal distribution $\mathcal{SN}$ with a width on each side given by a variation histogram. The likelihood function for the overall number of entries in each bin and in each template is thus given by
+% Requires: \usepackage{amsmath}
+\begin{equation}
+    \mathcal{L}(\vec{f}, \vec{\theta}) = \prod_{i=1}^{N} e^{-(\vec{f} \cdot \vec{y}_i)} \frac{(\vec{f} \cdot \vec{y}_i)^{n_i}}{n_i!} \prod_{k} \mathcal{SN}(\theta_k),
+    \label{eq:placeholder}
+\end{equation}
+where the vector of NPs is taken to be of length $k$. NPs are taken to be systematic uncertainties, such as modelling uncertainties and those related to the detector reconstruction. 
+
+A smoothing procedure is also applied in order to reduce statistical fluctuations which may impede the convergence of the fit. This is achieved by merging bins in which these fluctuations are present. Bins are merged when the statistical uncertainty is greater than the systematic uncertainty. 
+
+For a given bin with nominal entries $N$ and systematic variation $S$, with relative errors $\delta N$ and $\delta S$, the total error is given by $\delta M = \sqrt{\delta S^2 + \delta N^2}$, for uncorrelated variations, or $\delta M = \max(\delta N, \delta S)$ for correlated variations. If for a bin $\vert S  - N\vert < \delta M$, this bin is merged with the neighbouring bin with the highest value of $\delta M/M$. This is the rebinning step in the template definition.
+
+To further reduce the statistical fluctuations of the systematic variations, for each pair of neighbouring bins $b_j$ and $b_{j-1}$ the value
+\begin{equation}
+    X_{j-1,j} = \left| \frac{S_j - N_j}{N_j} - \frac{S_{j-1} - N_{j-1}}{N_{j-1}} \right|
+\end{equation}
+and relative error
+\begin{equation}
+\delta X_{j-1,j} = \sqrt{\frac{\delta M_j^2}{N_j^2} + \frac{\delta M_{j-1}^2}{N_{j-1}^2}}
+\end{equation}
+is calculated. If for some pair $\delta X < X$, the bins in the pair are merged. The systematic variations calculated in the merged bin, and propagated back to the original binning. The end result is an ease of tension in the fit.
+
+Figure~\ref{fig:prefit} shows the pre-fit templates in the four regions considered for the fit, for the large-R jet $p_t$ slice between 600-750~GeV. The post-fit agreement is shown in Figure~\ref{fig:postfit}. 
+
+The scale factors extracted from the fit in each $p_t$ slice are shown in Figure~\ref{fig:sf_sd0}. They are entirely below unity, indicating a lower dijet $g\rightarrow b\bar{b}$ tagging efficiency in data. As indicated by the small uncertainties on the scale factor, some $p_t$ bins are also highly constrained. 
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.485\linewidth]{xbb/NewXbbFitPlots/prefit_600-750_sd0/muon_pass.pdf}
+    \includegraphics[width=0.485\linewidth]{xbb/NewXbbFitPlots/prefit_600-750_sd0/muon_fail.pdf} \\
+     \includegraphics[width=0.485\linewidth]{xbb/NewXbbFitPlots/prefit_600-750_sd0/nonmuon_pass.pdf}
+    \includegraphics[width=0.485\linewidth]{xbb/NewXbbFitPlots/prefit_600-750_sd0/nonmuon_fail.pdf} \\
+    \caption{The pre-fit agreement in the four templates used for the $g\rightarrow b \bar{b}$ calibration. The top row corresponds to the muon jet and the bottom row to the leading non-muon jet. The left column shows the double-b tagged large-R jet and the right column the anti-tagged jet.}
+    \label{fig:prefit}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.485\linewidth]{xbb/postfit_600-750_sd0/muon_pass.png}
+    \includegraphics[width=0.485\linewidth]{xbb/postfit_600-750_sd0/muon_fail.png} \\
+     \includegraphics[width=0.485\linewidth]{xbb/postfit_600-750_sd0/nonmuon_pass.png}
+    \includegraphics[width=0.485\linewidth]{xbb/postfit_600-750_sd0/nonmuon_fail.png} \\
+    \caption{The post-fit agreement in the four templates used for the $g\rightarrow b \bar{b}$ calibration. The top row corresponds to the muon jet and the bottom row to the leading non-muon jet. The left column shows the double-b tagged large-R jet and the right column the anti-tagged jet.\\
+    \textcolor{red}{Todo: migliorare qualita' immagine}}
+    \label{fig:postfit}
+\end{figure}
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics[width=0.9\linewidth]{xbb/NewXbbFitPlots/sf_sd0.pdf}
+    \caption{The scale factors in each $p_t$ sliced extracted from the $g\rightarrow b\bar{b}$ fit.}
+    \label{fig:sf_sd0}
+\end{figure}
+
+\subsection{Systematic uncertainties}
+
+A number of systematic uncertainties come into play when fitting the MC simulation to data. These uncertainties also represent NPs for the fit.
+
+Uncertainties fall within three main categories: experimental uncertainties related to the reconstruction of objects used for the selection, such as jets, tracks, and muons; theoretical uncertainties related to MC modelling; and uncertainties specific to the $g\rightarrow b\bar{b}$ calibration. These include uncertainties on the fragmentation of different species of B hadrons which different lifetimes or on processes that produce tracks with large values of $s_{d_0}$, such as the production of $K_s$ or $\Lambda$.
+
+Besides the systematic uncertainties, extrapolation uncertainties are also considered as NPs. These consider the selection bias imposed by requiring a soft-muon in the jet and by deriving the scale factors from $g\rightarrow b\bar{b}$ events. In general, users of the Xbb tagger would not require a soft-muon within the jet, and would not apply the tagger to multijet events, but to a general $b\bar{b}$ resonance. The extrapolation uncertainties therefore account for any possible differences in the scale factors derived from this specific process and selection used for the calibration. 
+
+The categorisation of systematics is illustrated in full in Table~\ref{tab:uncertainties_cat}. A full list of systematics considered, and whether they are applied exclusively to is available in Table~\ref{tab:uncertainties}. This table also states whether a given systematic is applied to template shape, normalisation, or both. 
+
+% Requires: \usepackage{graphicx}
+\begin{table}[h]
+    \centering
+    \small
+    \begin{tabular}{|c|p{7cm}|}
+        \hline
+        \textbf{Systematic Uncertainty} & \textbf{Brief Description} \\
+        \hline
+        \multicolumn{2}{|c|}{\textbf{Template Uncertainties}} \\
+        \hline
+        Fake secondary vertex & Uncertainty on the rate of processes which create large $d_0$ tracks in light-flavour jets. \\
+        \hline
+        Fake muons & Uncertainty on the rate of false-positive muon identification in $b$-jets. \\
+        \hline
+        $b$-hadron fractions & Uncertainty on the relative production rate of $b$-hadron species. Uncertainty in the inclusive phase-space from the muon requirement used to derive scale factors. \\
+        \hline
+        $g \rightarrow b \bar{b} \, \text{ to } \, X \rightarrow b \bar{b}$ & Uncertainty on extrapolating from $g \rightarrow b \bar{b}$ decays to the general $X \rightarrow b \bar{b}$ case. \\
+        \hline
+        \multicolumn{2}{|c|}{\textbf{Experimental Uncertainties}} \\
+        \hline
+        Luminosity & Uncertainty on the full Run 2 integrated luminosity, as measured by the LUCID-2 detector. \\
+        \hline
+        Pileup Reweighting & Uncertainties on pile-up conditions are applied when reweighting simulations to match data. \\
+        \hline
+        Jet Energy Scale (JES) & Uncertainty on the reconstruction of large-$R$ jet energies from detector inputs. Applied as 30 independent NPs. \\
+        \hline
+        Jet Energy Resolution (JER) & Uncertainty on the precision of jet energy reconstruction. \\
+        \hline
+        Jet Mass Scale (JMS) & Uncertainty on jet mass reconstruction. Calculated separately from JES and applied as 6 independent NPs. \\
+        \hline
+        Jet Mass Resolution (JMR) & Uncertainty on the precision of jet mass reconstruction. Separate NPs used for Higgs jets and top jets. \\
+        \hline
+        \makecell{Muon Reconstruction\\Efficiency} & Uncertainties on the muon reconstruction efficiency and track-to-vertex association~\cite{ATLAS:2016lqx}. \\
+        \hline
+        Muon Momentum Scale & Uncertainty on muon momentum reconstruction~\cite{ATLAS:2016lqx}. Includes separate uncertainties on the resolution of ID and MS tracks. \\
+        \hline
+        Sagitta Bias Correction & Uncertainties due to charge-dependent effects of detector misalignment~\cite{ATLAS:2016lqx}. \\
+        \hline
+        \makecell{Track reconstruction\\ efficiency} & Uncertainties on passive material in the ID and on the GEANT4 model used in simulation. \\
+        \hline
+        Track fake rate & Uncertainty on the rate of combinatorial fake tracks from large numbers of hits in the ID. \\
+        \hline
+        \makecell{Track impact\\parameter resolution} & Uncertainties based on the difference in $d_0$ and $z_0$ resolution between data and MC. \\
+        \hline
+        \multicolumn{2}{|c|}{\textbf{Theoretical Uncertainties}} \\
+        \hline
+        Parton Shower & Uncertainty in the parton shower model is measured by comparing PYTHIA 8 and HERWIG 7. \\
+        \hline
+        Renormalisation Scale & Uncertainties in renormalisation and factorization scales, and in final state radiation (FSR) are assessed by sample weight variations in PYTHIA 8. \\
+        \hline
+    \end{tabular}
+    \caption{Uncertainties on the derivation of $b$-tagging scale factors for the $g\rightarrow b\bar{b}$ calibration of the Xbb tagger.\\ \textcolor{red}{Todo: sistemare misalignment del testo nella tabella.}}
+    \label{tab:uncertainties_cat}
+\end{table}
+\begin{comment}
+% Requires: \usepackage{graphicx}
+\begin{table}[hbtp]
+    \centering
+    \begin{tabular}{|l|l|l|}
+        \hline
+        \textbf{Name} & \textbf{Regions/Templates} & \textbf{Norm/Shape} \\ \hline
+        JET\_EffectiveNP\_R10\_GrestTerm & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        JET\_EtaIntercalib\_Modelling & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        JET\_EtaIntercalib\_NonClosure\_2018data & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        JET\_EtaIntercalib\_R10\_TotalStat & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        JET\_EffectiveNP\_R10\_Pi4 & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        JET\_EffectiveNP\_R10\_2 & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        JET\_EffectiveNP\_R10\_3 & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        JET\_EffectiveNP\_R10\_4 & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        JET\_EffectiveNP\_R10\_5 & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        JET\_Flavor\_Composition & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        MUON\_ID & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        MUON\_SAGITTA\_RESBIAS & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        MUON\_SCALE & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        MUON\_EFF\_TTVA\_SYS & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        TRK\_RES\_P2\_MEAS & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        TRK\_RES\_P2\_ERR & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        TRK\_RES\_D0\_DEAD & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        TRK\_RES\_Z0\_DEAD & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        TRK\_EFF\_LOOSE\_GLOBAL & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        TRK\_EFF\_LOOSE\_T1 & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        TRK\_EFF\_LOOSE\_PHYSMODEL & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        TRK\_EFF\_LOOSE\_PP0 & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        TRK\_FAKE\_RATE\_LOOSE\_PP0 & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        TRK\_EFF\_LOOSE\_TIDE & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        TRK\_FAKE\_RATE\_LOOSE\_TIDE & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        \hline
+        Conversion & \makecell{all templates,\\ fully correlated} & normalisation \\ \hline
+        HadMat & \makecell{all templates,\\ fully correlated} & normalisation \\ \hline
+        LightLongLived & \makecell{electrons/taus flavour categories,\\ only for BB and BL} & normalisation \\ \hline
+        BHAD & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        isr\_muRfac\_65\_\_fsr\_muRfac\_1 & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        isr\_muRfac\_1\_\_fsr\_muRfac\_0925 & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        isr\_muRfac\_2\_\_fsr\_muRfac\_1 & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        isr\_muRfac\_1\_\_fsr\_muRfac\_2 & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        Herwig & \makecell{merging categories, flavours,\\ only for BB and BL} & shape only \\ \hline
+    \end{tabular}
+    \caption{Names of the uncertainties included in the final template fit with the correspondent values and usage.}
+    \label{tab:uncertainties}
+\end{table}
+\end{comment}
+
+\begin{table}[h]
+    \centering
+    \small
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \textbf{Name} & \textbf{Regions applied} & \textbf{Norm/Shape}\\ \hline
+        \makecell{JET\_EffectiveNP\_R10\_GrestTerm\\ 
+        JET\_EffectiveNP\_R10\_Pi4\\
+        JET\_EffectiveNP\_R10\_2\\
+        JET\_EffectiveNP\_R10\_3\\
+        JET\_EffectiveNP\_R10\_4\\
+        JET\_EffectiveNP\_R10\_5} & \makecell{all templates,\\ fully correlated} & shape only\\ \hline
+
+        \makecell{JET\_EtaIntercalib\_Modelling\\
+        JET\_EtaIntercalib\_NonClosure\_2018data\\
+        JET\_EtaIntercalib\_R10\_TotalStat} & \makecell{all templates,\\ fully correlated} & shape only\\ \hline
+
+        JET\_Flavor\_Composition & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+
+        \makecell{MUON\_ID \\ MUON\_SAGITTA\_RESBIAS\\
+        MUON\_SCALE\\MUON\_EFF\_TTVA\_SYS} & \makecell{all templates,\\ fully correlated} & shape only\\ \hline
+
+        \makecell{TRK\_RES\_P2\_MEAS\\ 
+        TRK\_RES\_P2\_ERR\\
+        TRK\_RES\_D0\_DEAD\\
+        TRK\_RES\_Z0\_DEAD} & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+
+        \makecell{TRK\_EFF\_LOOSE\_GLOBAL\\
+        TRK\_EFF\_LOOSE\_T1\\
+        TRK\_EFF\_LOOSE\_PHYSMODEL\\
+        TRK\_EFF\_LOOSE\_PP0\\
+        TRK\_EFF\_LOOSE\_TIDE\\
+        TRK\_FAKE\_RATE\_LOOSE\_PP0\\
+        TRK\_FAKE\_RATE\_LOOSE\_TIDE}  & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        \makecell{isr\_muRfac\_65\_\_fsr\_muRfac\_1\\
+        isr\_muRfac\_1\_\_fsr\_muRfac\_0925\\
+        isr\_muRfac\_2\_\_fsr\_muRfac\_1\\
+        isr\_muRfac\_1\_\_fsr\_muRfac\_2} & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        Conversion & \makecell{all templates,\\ fully correlated} & normalisation \\ \hline
+        HadMat & \makecell{all templates,\\ fully correlated} & normalisation \\ \hline
+        LightLongLived & \makecell{electron/tau\\ flavour categories,\\ only for BB and BL} & normalisation \\ \hline
+        BHAD & \makecell{all templates,\\ fully correlated} & shape only \\ \hline
+        Herwig & \makecell{Merging categories\\ and flavours,\\ only for BB and BL} & shape only \\ \hline
+    \end{tabular}
+    \caption{Names of the uncertainties included in the final template fit with the corresponding values and usage.}
+    \label{tab:uncertainties}
+\end{table}
+
+
+Figure~\ref{fig:pulls} shows the pulls derived from the NPs in the template fit, in the $p_t$ bin 600-750~GeV. These are defined as the difference between the postfit ($\hat{\theta}$) and prefit ($\theta_0$) values of a quantity in units of standard deviation $\Delta \theta$
+\begin{equation}
+    \text{pull} = \frac{\hat{\theta} - \theta_0}{\Delta \theta}.
+\end{equation}
+
+From the plot, the systematics with the most significant pulls are those related to the MC uncertainties on the definitions of the individual flavour templates. Some individual systematics related to the fake rate of tracks, initial/final state radiation, and jet modelling compose of the rest of the main contribution.
+
+The correlation matrix of the NPs is also shown in Figure~\ref{fig:correlationMatrix}. As can be seen, the most highly correlated NPs are those related the major systematics described above and the normalisation factors of the various flavour templates used for the fit. 
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.4\linewidth]{xbb/NewXbbFitPlots/pulls_smooth.pdf}
+    \caption{The pulls of the systematic variations affecting the template fit, in the large-R jet $p_t$ region between $600 < p_t/\text{GeV} < 750$.}
+    \label{fig:pulls}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth]{xbb/NewXbbFitPlots/corrMatrix_sd0.pdf}
+    \caption{The correlation matrix of the NPs from the template fit, in the large-R jet $p_t$ region between $600 < p_t/\text{GeV} < 750$.}
+    \label{fig:correlationMatrix}
+\end{figure}
+
+\subsection{SV1 Mass Fit}
+\label{sv1 fit}
+
+To validate the results obtained via the $\langle s_{d_0} \rangle$ template fit, the efficiency scale factors can be derived with a different set of templates constructed with an alternative flavour-sensitive variable to demonstrate the compatibility of the scale factors derived with the two methods For this purpose, the secondary vertex (SV1) mass was chosen as the variable used to define the templates. 
+
+The SV1 mass corresponds to the mass of the tracks coming from the secondary vertex, as found by the vertex finder described in Section~\ref{SV1}. To reiterate, if it were possible to associate all particles coming from a heavy hadron decay to the secondary vertex, this would be found to have a mass corresponding to that of the heavy hadron, of the order of 5~GeV for $b$-hadrons. In practice, only charged particles can be associated to the secondary vertex, and there is always the possibility of fake tracks and inefficiencies, so the reconstructed vertex tends to have values below 5~GeV. 
+
+Aside from the choice of variable, the details of the fit are otherwise identical. We will thus limit ourselves to the results, with relevant comments when necessary.
+
+In Figures~\ref{fig:prefit_sv1} and~\ref{fig:postfit_sv1}, we see the prefit and postfit plot for the templates defined with the SV1 mass variable. As compared to the mean $s_{d_0}$, we can see how the SV1 mass distribution is overall smoother, missing the significant peak centred at 0 which was present in the $s_{d_0}$. Some flavour templates, particularly LL in the non-muon jet in the fail region, do portray peaks, however.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.485\linewidth]{xbb/sv1Fit/prefit/muon_pass.png}
+    \includegraphics[width=0.485\linewidth]{xbb/sv1Fit/prefit/muon_fail.png} \\
+     \includegraphics[width=0.485\linewidth]{xbb/sv1Fit/prefit/nonmuon_pass.png}
+    \includegraphics[width=0.485\linewidth]{xbb/sv1Fit/prefit/nonmuon_fail.png} \\
+    \caption{The pre-fit agreement in the four templates used for the $g\rightarrow b \bar{b}$ calibration with the SV1 mass variable. The top row corresponds to the muon jet and the bottom row to the leading non-muon jet. The left column shows the double-b tagged large-R jet and the right column the anti-tagged jet.\\
+    \textcolor{red}{Todo: migliorare qualita' immagine}}
+    \label{fig:prefit_sv1}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.485\linewidth]{xbb/sv1Fit/prefit/muon_pass.png}
+    \includegraphics[width=0.485\linewidth]{xbb/sv1Fit/prefit/muon_fail.png} \\
+     \includegraphics[width=0.485\linewidth]{xbb/sv1Fit/prefit/nonmuon_pass.png}
+    \includegraphics[width=0.485\linewidth]{xbb/sv1Fit/prefit/nonmuon_fail.png} \\
+    \caption{The post-fit agreement in the four templates used for the $g\rightarrow b \bar{b}$ calibration with the SV1 mass variable. The top row corresponds to the muon jet and the bottom row to the leading non-muon jet. The left column shows the double-b tagged large-R jet and the right column the anti-tagged jet.\\
+    \textcolor{red}{Todo: migliorare qualita' immagine}}
+    \label{fig:postfit_sv1}
+\end{figure}
+
+The fit converges and the scale factors obtained in all large-R jet $p_t$ regions is shown in Figure~\ref{fig:sf_sv1}. These are shown to be compatible with those shown in Figure~\ref{fig:sf_sd0}. They are all below unity, and generally compatible within uncertainties.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.9\linewidth]{xbb/sv1Fit/scale_factor.png}
+    \caption{The scale factors in each $p_t$ sliced extracted from the $g\rightarrow b\bar{b}$ fit with the SV1 mass.}
+    \label{fig:sf_sv1}
+\end{figure}
+
+Figures~\ref{fig:pulls_sv1} show the pulls for the NPs of the fit. These are the same as those found for the mean $s_{d_0}$ fit. 
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth]{xbb/sv1Fit/pulls.png}
+    \caption{The pulls of the systematic variations affecting the SV1 mass template fit, in the large-R jet $p_t$ region between $600 < p_t/\text{GeV} < 750$.\\ \textcolor{red}{Todo: migliorare qualita' immagine}}
+    \label{fig:pulls_sv1}
+\end{figure}
+
+\begin{comment}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth]{xbb/sv1Fit/correlation_matrix.png}
+    \caption{The correlation matrix of the NPs from the SV1 mass template fit, in the large-R jet $p_t$ region between $600 < p_t/\text{GeV} < 750$.}
+    \label{fig:correlation}
+\end{figure}
+\end{comment}
+
+\subsection{Final comments}
+
+All in all, the Xbb tagger calibration of $g\rightarrow b\bar{b}$ events was successfully completed. The convergence of the fit was proven and results were corroborated with alternate variables.
+
+Some final studies remained on the effect of the smoothing procedure on the fit, and, especially in the SV1 mass fit, the optimisation of the binning. Additional studies, such as an optimisation of the flavour template definition, were also carried out, but did not find their way into this thesis.
+
+My work on the calibration was carried out in Software Release 21 in 2022-2023. In 2023, the calibration of the Xbb tagger in this software release was abandoned in favour of the calibration in later releases, based on the GN2 tagger rather than DL1r. 
+
+\section{Conclusions}
+In this Chapter we have outlined the flavour tagging methods implemented by the ATLAS Experiment. Starting from a general description of flavour tagging, we moved on to describe the low-level algorithms which feed into the DL1r tagger, to then show the performances of this tagger. We then described the Xbb tagger, a dedicated $b\bar{b}$ resonance tagger, optimised for the Higgs boson. Finally, we described the calibration of this tagger on multijet events, showing how the maximum likelihood template fits based on two different flavour-sensitive observables, the mean $s_{d_{0}}$ and SV1 mass, can provide the efficiency scale factors needed to match the performance of the tagger on data to that on simulation. 
+
+\end{document}
